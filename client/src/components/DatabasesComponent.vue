@@ -5,6 +5,11 @@
   <div class="row">
     <div class="col">
       Databases
+      <div v-for="database in databases"
+        :key="database.name"
+        @click="selectDb(database)">
+        {{ database.name }}
+      </div>
     </div>
   </div>
 </div>
@@ -13,9 +18,27 @@
 
 <script>
 
+import MongoService from '../MongoService';
+
+export default {
+    data() {
+        return {
+            databases: []
+        }
+    },
+    async created() {
+        this.databases = await MongoService.databases();
+    },
+    methods: {
+        async selectDb(database) {
+            console.log(`setting db ${database.name}`);
+            this.$storage.set('database', database.name);
+        }
+    }
+}
+
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 
 </style>

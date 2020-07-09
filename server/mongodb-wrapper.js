@@ -49,6 +49,32 @@ class Mongo {
         return client.db(db_name).collection(coll_name);
     }
 
+    static async get_databases() {
+        const db_url = 'mongodb://localhost/';
+        const options = { useUnifiedTopology: true, useNewUrlParser: true };
+        const client = await mongodb.MongoClient.connect(db_url, options);
+        console.log('got client');
+        const adminDb = await client.db('admin').admin();
+        console.log('got admin db');
+        const result = await adminDb.listDatabases();
+        console.log('got result');
+        return result.databases;
+    }
+
+    static async get_collections(db_name) {
+        const db_url = 'mongodb://localhost/';
+        const options = { useUnifiedTopology: true, useNewUrlParser: true };
+        const client = await mongodb.MongoClient.connect(db_url, options);
+        console.log('got client');
+        const db = await client.db(db_name);
+        const result = await db.collections();
+        let collections = [];
+        for(let collection of result) {
+            collections.push({ name: collection.collectionName });
+        }
+        return collections;
+    }
+
     async * chunks(query = {}, sort = null, options = {}) {
         if(!sort) {
             sort = { "_id": 1 }

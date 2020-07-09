@@ -10,6 +10,7 @@
       <b-navbar-nav>
         <b-nav-item href="#"><router-link to="/">Connections</router-link></b-nav-item>
         <b-nav-item href="#"><router-link to="/databases">Databases</router-link></b-nav-item>
+        <b-nav-item href="#"><router-link to="/collections">Collections</router-link></b-nav-item>
         <b-nav-item href="#"><router-link to="/settings">Settings</router-link></b-nav-item>
       </b-navbar-nav>
       <!-- Right aligned nav items -->
@@ -30,26 +31,8 @@
 
 <script>
 
-import MongoService from '../MongoService.js';
-
-export default {
-    data() {
-        return {
-            title: 'Mongodb',
-            collections: []
-        }
-    },
-    async created() {
-        this.collections = await MongoService.collections();
-    },
-    methods: {
-
-    }
-}
-
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 
 </style>
