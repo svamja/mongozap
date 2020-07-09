@@ -9,9 +9,12 @@
       </router-link>
       &nbsp;
       <span class="text-muted">&gt;</span>
-      <span class="text-info">{{ database }}</span>&nbsp;
+      <router-link :to="'/database/' + database + '/collections'">
+        <span class="text-info">{{ database }}</span>
+      </router-link>
+      &nbsp;
       <span class="text-muted">&gt; </span>
-      <span class="text-muted"> Collections</span>
+      <span class="text-muted"> {{ collection }}</span>
     </div>
   </div>
   <div class="row my-2">
@@ -20,11 +23,9 @@
     </div>
   </div>
   <div class="row">
-    <div class="col-md-3 col-sm-6" v-for="collection in collections"
-      :key="collection.name">
-      <router-link :to="'/collection/' + collection.name + '/view'">
-        {{ collection.displayName }}
-      </router-link>
+    <div class="col-md-3 col-sm-6" v-for="record in records"
+      :key="record._id">
+        {{ record._id }}
     </div>
   </div>
 </div>
@@ -35,24 +36,24 @@
 
 import ConfigService from '../ConfigService';
 import MongoService from '../MongoService';
+// import _ from 'lodash';
 
 export default {
   data() {
     return {
       database: '[db]',
+      collection: '',
       search_text: '',
-      collections: [],
-      display: ''
+      records: [],
     }
   },
   async created () {
-    if(this.$route.params.database) {
-      this.$storage.set('database', this.$route.params.database);
+    if(this.$route.params.collection) {
+      this.$storage.set('collection', this.$route.params.collection);
     }
     this.database = this.$storage.get('database');
-    this.collections = await MongoService.collections(this.database);
-    const displayField = ConfigService.get('collection_display');
-    this.collections.forEach(x => x.displayName = x[displayField]);
+    this.collection = this.$storage.get('collection');
+    this.records = await MongoService.records(this.database, this.collection);
   },
 }
 

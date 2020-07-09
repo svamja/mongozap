@@ -3,12 +3,17 @@
 
 <div class="container">
   <div class="row">
+    <div class="col h5">
+      <span class="text-info">Databases</span>
+    </div>
+  </div>
+  <div class="row">
     <div class="col">
-      Databases
-      <div v-for="database in databases"
-        :key="database.name"
-        @click="selectDb(database)">
-        {{ database.name }}
+      <div v-for="database in databases" :key="database.name">
+        <router-link :to="'/database/' + database.name + '/collections'">
+          {{ database.name }}
+        </router-link>
+
       </div>
     </div>
   </div>

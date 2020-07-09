@@ -70,7 +70,9 @@ class Mongo {
         const result = await db.collections();
         let collections = [];
         for(let collection of result) {
-            collections.push({ name: collection.collectionName });
+            const name = collection.collectionName;
+            const model_name = _.startCase(name).replace(/ /g, '');
+            collections.push({ name, model_name });
         }
         return collections;
     }
