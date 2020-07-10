@@ -32,6 +32,14 @@ class Mongo {
 
     }
 
+    static setDbUrl(dbUrl) {
+        Mongo.dbUrl = dbUrl;
+    }
+
+    static setDbName(dbName) {
+        Mongo.dbName = dbName;
+    }
+
     static async get(model_name) {
         if(!model_name) {
             throw new Error('model name is missing');
@@ -42,31 +50,27 @@ class Mongo {
     }
 
     static async get_collection(coll_name) {
-        const db_url = 'mongodb://localhost/';
+        const dbUrl = Mongo.dbUrl || 'mongodb://localhost/';
         const options = { useUnifiedTopology: true, useNewUrlParser: true };
-        const client = await mongodb.MongoClient.connect(db_url, options);
-        const db_name = 'sample';
-        return client.db(db_name).collection(coll_name);
+        const client = await mongodb.MongoClient.connect(dbUrl, options);
+        const dbName = Mongo.dbName || 'test';
+        return client.db(dbName).collection(coll_name);
     }
 
     static async get_databases() {
-        const db_url = 'mongodb://localhost/';
+        const dbUrl = 'mongodb://localhost/';
         const options = { useUnifiedTopology: true, useNewUrlParser: true };
-        const client = await mongodb.MongoClient.connect(db_url, options);
-        console.log('got client');
+        const client = await mongodb.MongoClient.connect(dbUrl, options);
         const adminDb = await client.db('admin').admin();
-        console.log('got admin db');
         const result = await adminDb.listDatabases();
-        console.log('got result');
         return result.databases;
     }
 
-    static async get_collections(db_name) {
-        const db_url = 'mongodb://localhost/';
+    static async get_collections(dbName) {
+        const dbUrl = 'mongodb://localhost/';
         const options = { useUnifiedTopology: true, useNewUrlParser: true };
-        const client = await mongodb.MongoClient.connect(db_url, options);
-        console.log('got client');
-        const db = await client.db(db_name);
+        const client = await mongodb.MongoClient.connect(dbUrl, options);
+        const db = await client.db(dbName);
         const result = await db.collections();
         let collections = [];
         for(let collection of result) {
@@ -217,7 +221,6 @@ class Mongo {
         }
         if(type === null || this.bulk_operations.length >= 1000) {
             if(this.bulk_operations.length) {
-                console.log(`doing bulk write ${this.bulk_operations.length}`);
                 await this.bulkWrite(this.bulk_operations);
                 this.bulk_operations = [];
             }

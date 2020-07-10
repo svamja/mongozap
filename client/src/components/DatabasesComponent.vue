@@ -3,8 +3,8 @@
 
 <div class="container">
   <div class="row">
-    <div class="col h5">
-      <span class="text-info">Databases</span>
+    <div class="col">
+      <b-button class="ml-0 pl-0" variant="link" to="/databases">Databases</b-button>
     </div>
   </div>
   <div class="row">

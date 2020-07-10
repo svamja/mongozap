@@ -20,6 +20,22 @@ class MongoService {
         collections = _.sortBy(collections, [ 'name' ]);
         return collections;
     }
+
+    static async records(db, coll, ctx) {
+        let url = baseUrl + `/collection/index?db=${db}&coll=${coll}`;
+        if(ctx) {
+            if(ctx.currentPage) {
+                url += '&page=' + (ctx.currentPage - 1);
+            }
+            if(ctx.perPage) {
+                url += '&perPage=' + ctx.perPage;
+            }
+        }
+        const res = await axios.get(url);
+        const records = res.data;
+        return records;
+    }
+
 }
 
 export default MongoService;
