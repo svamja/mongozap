@@ -1,6 +1,9 @@
 // File: custom.scss
 
-$web-font-path: "https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,700&display=swap" !default;
+// $web-font-path: "https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,700&display=swap" !default;
+
+$web-font-path: "https://fonts.googleapis.com/css2?family=Roboto:wght@300;400&display=swap" !default;
+
 @import url($web-font-path);
 @import './bootswatch_variables.scss';
 

@@ -1,4 +1,5 @@
 const Mongo = require('./mongodb-wrapper');
+const _ = require('lodash');
 
 const MainController = {
 
@@ -18,17 +19,45 @@ const MainController = {
     },
 
     collection_index: async function(req, res) {
+        // Get Params
         const db = req.query.db;
         const coll = req.query.coll;
         const page = req.query.page;
+            
+        // Query
+        let query = null;
+        if(req.body && req.body.query) {
+            if(_.isString(req.body.query)) {
+                try {
+                    query = JSON.parse(req.body.query)
+                }
+                catch(err) {}
+            }
+            else if(_.isPlainObject(req.body.query)) {
+                query = req.body.query;
+            }
+        }
+        if(!query) {
+            query = {};
+        }
+
+        // Get Collection
         Mongo.setDbName(db);
         const Model = await Mongo.get(coll);
         let perPage = parseInt(req.query.perPage || 10);
-        const cursor = await Model.find().limit(perPage);
+
+        // Get Cursor
+        const cursor = await Model.find(query).limit(perPage);
+            
+        // Pagination Skip
         if(page) {
             await cursor.skip(page*perPage);
         }
+
+        // Get Records
         const records = await cursor.toArray();
+
+        // Return Records
         res.json(records);
     },
 

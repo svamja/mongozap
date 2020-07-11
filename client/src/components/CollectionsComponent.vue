@@ -9,19 +9,24 @@
       <span class="text-muted">/</span>
       <b-button variant="link">{{ database }}</b-button>
       <span class="text-muted">/</span>
-      <b-dropdown id="dropdown-dropright" dropright text="Collections" variant="muted" class="text-muted m-2">
+      <b-dropdown id="dropdown-dropright" dropright text="Collections" variant="muted" class="text-muted">
         <b-dropdown-item href="#">Home</b-dropdown-item>
         <b-dropdown-item href="#">Collections</b-dropdown-item>
       </b-dropdown>
     </div>
   </div>
 
+  <!-- Search Bar -->
   <div class="row my-2">
     <div class="col">
-      <b-form-input v-model="search_text" placeholder="Search" @change="searchChange" autofocus></b-form-input>
+      <form @submit.prevent="endSearch">
+        <b-form-input v-model="search_text" placeholder="Search" autofocus></b-form-input>
+      </form>
     </div>
   </div>
-  <div v-if="search_text" class="row">
+
+  <!-- Filtered Collections  -->
+  <div class="row">
     <div class="col-md-3 col-sm-6" v-for="collection in filtered_collections"
       :key="collection.name">
       <router-link :to="'/collection/' + collection.name + '/index'">
@@ -29,14 +34,7 @@
       </router-link>
     </div>
   </div>
-  <div v-else class="row">
-    <div class="col-md-3 col-sm-6" v-for="collection in collections"
-      :key="collection.name">
-      <router-link :to="'/collection/' + collection.name + '/index'">
-        {{ collection.displayName }}
-      </router-link>
-    </div>
-  </div>
+
 </div>
 
 </template>
@@ -52,7 +50,8 @@ export default {
       database: '[db]',
       search_text: '',
       collections: [],
-      display: ''
+      display: '',
+      single_filter: false
     }
   },
   async created () {
@@ -65,11 +64,37 @@ export default {
     this.collections.forEach(x => x.displayName = x[displayField]);
   },
   computed: {
-    filtered_collections: function() {
+    filtered_collections() {
       if(!this.search_text || !this.search_text.trim()) {
-        return [];
+        return this.collections;
       }
-      return this.collections.filter(x => x.name.match(new RegExp(this.search_text)));
+      let chars = this.search_text.trim().split('');
+      let expression = '^' + chars.join('.*');
+      return this.collections.filter(x => x.name.match(new RegExp(expression, 'i')));
+    }
+  },
+  watch: {
+    filtered_collections(val) {
+      this.single_filter = val && val.length == 1;
+    },
+  },
+  methods: {
+    endSearch() {
+      if(this.filtered_collections.length) {
+        let collection = this.filtered_collections[0];
+        if(this.filtered_collections.length > 1) {
+          let search_alpha = this.search_text.toLowerCase().replace(/[^a-z]/g, '');
+          for(let index in this.filtered_collections) {
+            let coll = this.filtered_collections[index];
+            let alpha = coll.name.toLowerCase().replace(/[^a-z]/g, '');
+            if(alpha == search_alpha) {
+              collection = coll;
+              break;
+            }
+          }
+        }
+        this.$router.push('/collection/' + collection.name + '/index');
+      }
     }
   }
 }

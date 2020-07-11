@@ -23,6 +23,7 @@ class MongoService {
 
     static async records(db, coll, ctx) {
         let url = baseUrl + `/collection/index?db=${db}&coll=${coll}`;
+        let data = {};
         if(ctx) {
             if(ctx.currentPage) {
                 url += '&page=' + (ctx.currentPage - 1);
@@ -30,8 +31,11 @@ class MongoService {
             if(ctx.perPage) {
                 url += '&perPage=' + ctx.perPage;
             }
+            if(ctx.query) {
+                data.query = JSON.stringify(ctx.query);
+            }
         }
-        const res = await axios.get(url);
+        const res = await axios.post(url, data);
         const records = res.data;
         return records;
     }

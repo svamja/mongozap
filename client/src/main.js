@@ -2,10 +2,17 @@ import Vue from 'vue';
 import { BootstrapVue } from 'bootstrap-vue';
 import { Vue2Storage } from 'vue2-storage'
 import VueRouter from 'vue-router';
+import VueShortKey from 'vue-shortkey';
+import VueHighlightJS from 'vue-highlightjs'
+
 
 import App from './App.vue';
 
 import './scss/theme.scss';
+// import '../node_modules/highlight.js/scss/a11y-light.scss';
+// import '../node_modules/highlight.js/scss/vs.scss';
+// import '../node_modules/highlight.js/scss/github.scss';
+import '../node_modules/highlight.js/scss/github-gist.scss';
 
 Vue.config.productionTip = false
 
@@ -18,6 +25,9 @@ import SettingsComponent from './components/SettingsComponent';
 Vue.use(BootstrapVue);
 Vue.use(VueRouter);
 Vue.use(Vue2Storage, { prefix: 'mzp_' });
+Vue.use(VueShortKey);
+Vue.use(VueHighlightJS);
+
 
 const routes = [
   { path: '/', component: ConnectionsComponent },
