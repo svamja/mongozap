@@ -13,6 +13,7 @@ server.get('/api/databases', MainController.databases);
 server.get('/api/collections', MainController.collections);
 server.get('/api/collection/index', MainController.collection_index);
 server.post('/api/collection/index', MainController.collection_index);
+server.post('/api/collection/clear', MainController.collection_clear);
 
 server.listen(port, function() {
     console.log(`mongozap started on port ${port}`)

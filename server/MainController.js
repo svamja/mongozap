@@ -61,6 +61,16 @@ const MainController = {
         res.json(records);
     },
 
+    async collection_clear(req, res) {
+        // Get Collection
+        const db = req.body.db;
+        const coll = req.body.coll;
+        Mongo.setDbName(db);
+        const Model = await Mongo.get(coll);
+        result = await Model.deleteMany();
+        res.json({ status: 'success', result });
+    },
+
 };
 
 module.exports = MainController;

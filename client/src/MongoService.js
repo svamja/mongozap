@@ -40,6 +40,13 @@ class MongoService {
         return records;
     }
 
+    static async clear(db, coll) {
+        let url = baseUrl + `/collection/clear`;
+        const data = { db, coll };
+        const res = await axios.post(url, data);
+        return res.data;
+    }
+
 }
 
 export default MongoService;

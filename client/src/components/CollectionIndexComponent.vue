@@ -17,7 +17,7 @@
         <b-dropdown-item href="#">Home</b-dropdown-item>
         <b-dropdown-item href="#">Browse</b-dropdown-item>
         <b-dropdown-item href="#" v-b-modal.search-modal>Search</b-dropdown-item>
-        <b-dropdown-item href="#" variant="danger">Clear</b-dropdown-item>
+        <b-dropdown-item href="#" v-b-modal.confirmation-modal variant="danger">Clear</b-dropdown-item>
         <b-dropdown-item href="#" variant="danger">Drop</b-dropdown-item>
       </b-dropdown>
       <a class="small" v-shortkey.once="['/']" @shortkey="openSearch()" href="#" @click="openSearch()">
@@ -26,6 +26,10 @@
       &nbsp;
       <a class="small" v-shortkey.once="['r']" @shortkey="reload()" href="#" @click="reload()">
         <span class="fa fa-sync"></span>
+      </a>
+      &nbsp;
+      <a class="small" v-shortkey.once="['shift', '?']" @shortkey="openShortcuts()" href="#" @click="openShortcuts()">
+        <span class="fa fa-question-circle"></span>
       </a>
     </div>
 
@@ -66,6 +70,15 @@
 
   </b-table>
 
+  <!-- Empty Table  -->
+  <div v-if="isCollEmpty">
+    <div class="row">
+      <div class="col border p-5 text-center h4">
+        Empty Collection
+      </div>
+    </div>
+  </div>
+
   <!-- Search Modal -->
   <b-modal id="search-modal" title="Search" v-model="showSearchModal">
     <b-tabs content-class="mt-3">
@@ -94,6 +107,35 @@
     </template>
   </b-modal>
 
+  <!-- Keyboard Shortcuts Modal -->
+  <b-modal id="shortcuts-modal" title="Keyboard Shortcuts" v-model="showShortcutsModal" ok-only>
+    <table class="table table-bordered">
+      <tbody>
+        <tr>
+          <td>/</td>
+          <td>Search</td>
+        </tr>
+        <tr>
+          <td>r</td>
+          <td>Reload</td>
+        </tr>
+        <tr>
+          <td>?</td>
+          <td>Keyboard Shortcuts</td>
+        </tr>
+      </tbody>
+    </table>
+  </b-modal>
+
+  <!-- Confirmation Modal -->
+  <b-modal id="confirmation-modal" title="Confirmation"
+    ok-variant="danger" ok-title="Clear Collection"
+    @ok="clearCollection()">
+    <p>This will drop the collection and recreate it with same indexes.</p>
+    <p>You will lose all data in this collection.</p>
+    <p>Proceed?</p>
+  </b-modal>
+
 </div>
 
 </template>
@@ -103,9 +145,12 @@
 import MongoService from '../MongoService';
 
 export default {
+
   data() {
     return {
       showSearchModal: false,
+      showShortcutsModal: false,
+      isCollEmpty: false,
       database: '[db]',
       collection: '',
       search_text: '',
@@ -118,6 +163,7 @@ export default {
       pageOptions: [ 5, 10, 20, 50, 100, 500, 1000, 2000 ]
     }
   },
+
   async created () {
     if(this.$route.params.collection) {
       this.$storage.set('collection', this.$route.params.collection);
@@ -126,35 +172,33 @@ export default {
     this.collection = this.$storage.get('collection');
     // this.records = await MongoService.records(this.database, this.collection);
   },
-  // computed: {
-  //   query() {
-  //     let query;
-  //     if(this.query_text && this.query_text.trim()) {
-  //       try {
-  //         query = JSON.parse(this.query_text);
-  //       }
-  //       catch(err) {
-  //         // handle later
-  //       }
-  //     }
-  //     if(!query) {
-  //       query = {};
-  //     }
-  //     return query;
-  //   }
-  // },
+
   methods: {
+
     async reload() {
       this.$root.$emit('bv::refresh::table', 'records_table');
     },
+    
     async records_fn(ctx) {
       ctx.query = this.query;
       let records = await MongoService.records(this.database, this.collection, ctx);
+      this.isCollEmpty = !records.length;
       return records;
     },
+    
+    async clearCollection() {
+      await MongoService.clear(this.database, this.collection);
+      this.reload();
+    },
+    
     openSearch() {
       this.showSearchModal = true;
     },
+    
+    openShortcuts() {
+      this.showShortcutsModal = true;
+    },
+    
     saveSearch() {
       this.showSearchModal = false;
       let query;
@@ -172,7 +216,9 @@ export default {
       this.query = query;
       this.$root.$emit('bv::refresh::table', 'records_table');
     },
+
   }
+  
 }
 
 

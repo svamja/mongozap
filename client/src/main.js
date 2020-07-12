@@ -25,7 +25,7 @@ import SettingsComponent from './components/SettingsComponent';
 Vue.use(BootstrapVue);
 Vue.use(VueRouter);
 Vue.use(Vue2Storage, { prefix: 'mzp_' });
-Vue.use(VueShortKey);
+Vue.use(VueShortKey, { prevent: ['input', 'textarea'] })
 Vue.use(VueHighlightJS);
 
 
