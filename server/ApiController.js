@@ -1,11 +1,7 @@
 const Mongo = require('./mongodb-wrapper');
 const _ = require('lodash');
 
-const MainController = {
-
-    index: async function(req, res) {
-        res.send('success');
-    },
+const ApiController = {
 
     databases: async function(req, res) {
         const databases = await Mongo.get_databases();
@@ -71,6 +67,49 @@ const MainController = {
         res.json({ status: 'success', result });
     },
 
+    async collection_drop(req, res) {
+        // Get Collection
+        const db = req.body.db;
+        const coll = req.body.coll;
+        Mongo.setDbName(db);
+        const Model = await Mongo.get(coll);
+        result = await Model.drop();
+        res.json({ status: 'success', result });
+    },
+
+    //TODO: Get Collection Info
+    async collection_get(req, res) {
+        // Get Params
+        const db = req.query.db;
+        const coll = req.query.coll;
+    },
+
+    async schema_get(req, res) {
+        const db = req.body.db;
+        const coll = req.body.coll;
+
+        // Schema Db
+        const schema_db = 'mongozap';
+        const schema_coll = 'fields';
+        Mongo.setDbName(schema_db);
+        const SchemaModel = await Mongo.get(schema_coll);
+
+        // Query
+        let query = { db, coll };
+        result = await SchemaModel.find(query).toArray();
+        res.json(result);
+    },
+
+    async build_schema(req, res) {
+        // Get Collection
+        const db = req.body.db;
+        const coll = req.body.coll;
+        Mongo.setDbName(db);
+        const Model = await Mongo.get(coll);
+        result = await Model.deleteMany();
+        res.json({ status: 'success', result });
+    },
+
 };
 
-module.exports = MainController;
+module.exports = ApiController;

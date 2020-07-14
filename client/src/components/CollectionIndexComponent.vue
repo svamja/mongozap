@@ -3,38 +3,37 @@
 
 <div class="container">
 
-  <div class="row justify-content-between">
-
-    <!-- Breadcrumb -->
+  <div class="row">
     <div class="col-auto">
-      <b-button class="ml-0 pl-0" variant="link" to="/databases">Databases</b-button>
-      <span class="text-muted">/</span>
-      <b-button variant="link" :to="'/database/' + database + '/collections'">{{ database }}</b-button>
-      <span class="text-muted">/</span>
-      <b-button variant="link">{{ collection }}</b-button>
-      <span class="text-muted">/</span>
-      <b-dropdown id="dropdown-dropright" dropright text="Browse" variant="muted" class="text-muted">
-        <b-dropdown-item href="#">Home</b-dropdown-item>
-        <b-dropdown-item href="#">Browse</b-dropdown-item>
-        <b-dropdown-item href="#" v-b-modal.search-modal>Search</b-dropdown-item>
-        <b-dropdown-item href="#" v-b-modal.confirmation-modal variant="danger">Clear</b-dropdown-item>
-        <b-dropdown-item href="#" variant="danger">Drop</b-dropdown-item>
-      </b-dropdown>
-      <a class="small" v-shortkey.once="['/']" @shortkey="openSearch()" href="#" @click="openSearch()">
+      <BreadcrumbComponent
+          :database="database"
+          :collection="collection" 
+          :display-collection="displayCollection" 
+          action="Browse"
+          />
+    </div>
+
+    <div class="col-auto my-auto pl-0 ml-auto">
+
+      <a v-shortkey.once="['/']" 
+        @shortkey="openSearch()" href="#" @click="openSearch()"
+        v-b-tooltip.hover title="Search (/)">
         <span class="fa fa-search"></span>
       </a>
-      &nbsp;
-      <a class="small" v-shortkey.once="['r']" @shortkey="reload()" href="#" @click="reload()">
+      <a class="ml-2" v-shortkey.once="['r']"
+        @shortkey="reload()" href="#" @click="reload()"
+        v-b-tooltip.hover title="Reload (r)">
         <span class="fa fa-sync"></span>
       </a>
-      &nbsp;
-      <a class="small" v-shortkey.once="['shift', '?']" @shortkey="openShortcuts()" href="#" @click="openShortcuts()">
+      <a class="ml-2" v-shortkey.once="['shift', '?']"
+        @shortkey="openShortcuts()" href="#" @click="openShortcuts()"
+        v-b-tooltip.hover title="Keyboard Shortcuts (?)">
         <span class="fa fa-question-circle"></span>
       </a>
     </div>
 
     <!-- Pagination -->
-    <div class="col-auto my-1">
+    <div class="col-auto my-auto pl-0">
       <b-form-select
         v-model="perPage"
         id="perPageSelect"
@@ -42,7 +41,8 @@
         :options="pageOptions"
       ></b-form-select>
     </div>
-    <div class="col-md-4">
+
+    <div class="col-auto my-auto pl-0">
       <b-pagination
         v-model="currentPage"
         :total-rows="totalRows"
@@ -52,10 +52,11 @@
         class="my-1"
       ></b-pagination>
     </div>
+
   </div>
 
   <!-- Table -->
-  <b-table id="records_table" bordered small
+  <b-table id="records_table" ref="bv_table" bordered small
     :items="records_fn"
     :current-page="currentPage"
     :per-page="perPage">
@@ -127,12 +128,25 @@
     </table>
   </b-modal>
 
-  <!-- Confirmation Modal -->
-  <b-modal id="confirmation-modal" title="Confirmation"
+  <!-- Clear Confirmation Modal -->
+  <b-modal id="clear-confirmation-modal" title="Confirmation"
     ok-variant="danger" ok-title="Clear Collection"
     @ok="clearCollection()">
-    <p>This will drop the collection and recreate it with same indexes.</p>
-    <p>You will lose all data in this collection.</p>
+    <p>
+      This will drop the collection and recreate it with same indexes. <br/>
+      You will lose all data in this collection.
+    </p>
+    <p>Proceed?</p>
+  </b-modal>
+
+  <!-- Drop Modal -->
+  <b-modal id="drop-confirmation-modal" title="Confirmation"
+    ok-variant="danger" ok-title="Drop Collection"
+    @ok="dropCollection()">
+    <p>
+      This will drop the collection. <br/>
+      You will lose all data and indexes in this collection.
+    </p>
     <p>Proceed?</p>
   </b-modal>
 
@@ -143,8 +157,14 @@
 <script>
 
 import MongoService from '../MongoService';
+import ConfigService from '../ConfigService';
+import _ from 'lodash';
+import BreadcrumbComponent from './BreadcrumbComponent';
+
 
 export default {
+
+  components: { BreadcrumbComponent },
 
   data() {
     return {
@@ -153,6 +173,7 @@ export default {
       isCollEmpty: false,
       database: '[db]',
       collection: '',
+      displayCollection: '',
       search_text: '',
       query_text: '',
       // records: [],
@@ -170,7 +191,13 @@ export default {
     }
     this.database = this.$storage.get('database');
     this.collection = this.$storage.get('collection');
-    // this.records = await MongoService.records(this.database, this.collection);
+    const displayField = ConfigService.get('collection_display');
+    if(displayField == 'name') {
+      this.displayCollection = this.collection;
+    }
+    else {
+      this.displayCollection = _.upperFirst(_.camelCase(this.collection));
+    }
   },
 
   methods: {
@@ -189,6 +216,11 @@ export default {
     async clearCollection() {
       await MongoService.clear(this.database, this.collection);
       this.reload();
+    },
+    
+    async dropCollection() {
+      await MongoService.drop(this.database, this.collection);
+      this.$router.push('/database/' + this.database + '/collections');
     },
     
     openSearch() {

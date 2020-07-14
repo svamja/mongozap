@@ -20,6 +20,7 @@ import ConnectionsComponent from './components/ConnectionsComponent';
 import DatabasesComponent from './components/DatabasesComponent';
 import CollectionsComponent from './components/CollectionsComponent';
 import CollectionIndexComponent from './components/CollectionIndexComponent';
+import CollectionSchemaComponent from './components/CollectionSchemaComponent';
 import SettingsComponent from './components/SettingsComponent';
 
 Vue.use(BootstrapVue);
@@ -35,6 +36,7 @@ const routes = [
   { path: '/database/:database/collections', component: CollectionsComponent },
   { path: '/collections', component: CollectionsComponent },
   { path: '/collection/:collection/index', component: CollectionIndexComponent },
+  { path: '/collection/:collection/schema', component: CollectionSchemaComponent },
   { path: '/settings', component: SettingsComponent }
 ];
 

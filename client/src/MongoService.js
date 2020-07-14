@@ -1,7 +1,7 @@
 import axios from 'axios';
 import _ from 'lodash';
 
-const baseUrl = 'http://localhost:3183/api';
+const baseUrl = 'api';
 
 class MongoService {
 
@@ -44,6 +44,19 @@ class MongoService {
         let url = baseUrl + `/collection/clear`;
         const data = { db, coll };
         const res = await axios.post(url, data);
+        return res.data;
+    }
+
+    static async drop(db, coll) {
+        let url = baseUrl + `/collection/drop`;
+        const data = { db, coll };
+        const res = await axios.post(url, data);
+        return res.data;
+    }
+
+    static async loadSchema(db, coll) {
+        let url = baseUrl + `/collection/schema?db=${db}&coll=${coll}`;
+        const res = await axios.get(url);
         return res.data;
     }
 

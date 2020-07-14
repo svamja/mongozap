@@ -12,13 +12,13 @@ npm install
 npm start
 ````
 
-You can now access it on `http://localhost:8080`
+You can now access it on `http://localhost:3333`
 
 ## Server Configuration
 
 It uses .env file and environment variables for configuration. Below variables are used for configuration.
 
-PORT - Port to bind to. (Default: 8080)
+PORT - Port to bind to. (Default: 3333)
 
 
 
