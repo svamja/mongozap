@@ -36,8 +36,8 @@ class MongoService {
             }
         }
         const res = await axios.post(url, data);
-        const records = res.data;
-        return records;
+        const result = res.data;
+        return result;
     }
 
     static async clear(db, coll) {
@@ -57,6 +57,13 @@ class MongoService {
     static async loadSchema(db, coll) {
         let url = baseUrl + `/collection/schema?db=${db}&coll=${coll}`;
         const res = await axios.get(url);
+        return res.data;
+    }
+
+    static async rebuildSchema(db, coll) {
+        let url = baseUrl + `/collection/schema`;
+        let data = { db, coll, rebuild: true };
+        const res = await axios.post(url, data);
         return res.data;
     }
 

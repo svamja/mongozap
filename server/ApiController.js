@@ -1,4 +1,5 @@
-const Mongo = require('./mongodb-wrapper');
+const Mongo = require('./Mongo');
+const SchemaMgr = require('./SchemaMgr');
 const _ = require('lodash');
 
 const ApiController = {
@@ -10,7 +11,7 @@ const ApiController = {
 
     collections: async function(req, res) {
         const db = req.query.db;
-        const collections = await Mongo.get_collections(db);
+        const collections = await Mongo.get_coll_stats(db);
         res.json(collections);
     },
 
@@ -38,8 +39,7 @@ const ApiController = {
         }
 
         // Get Collection
-        Mongo.setDbName(db);
-        const Model = await Mongo.get(coll);
+        const Model = await Mongo.get(db, coll);
         let perPage = parseInt(req.query.perPage || 10);
 
         // Get Cursor
@@ -53,16 +53,24 @@ const ApiController = {
         // Get Records
         const records = await cursor.toArray();
 
-        // Return Records
-        res.json(records);
+        // Estimated Count
+        let count = records.length;
+        if(query && Object.keys(query).length) {
+            count = await Model.countDocuments(query);
+        }
+        else {
+            count = await Model.estimatedDocumentCount();
+        }
+
+        // Return Data
+        res.json({ records, count });
     },
 
     async collection_clear(req, res) {
         // Get Collection
         const db = req.body.db;
         const coll = req.body.coll;
-        Mongo.setDbName(db);
-        const Model = await Mongo.get(coll);
+        const Model = await Mongo.get(db, coll);
         result = await Model.deleteMany();
         res.json({ status: 'success', result });
     },
@@ -71,8 +79,7 @@ const ApiController = {
         // Get Collection
         const db = req.body.db;
         const coll = req.body.coll;
-        Mongo.setDbName(db);
-        const Model = await Mongo.get(coll);
+        const Model = await Mongo.get(db, coll);
         result = await Model.drop();
         res.json({ status: 'success', result });
     },
@@ -85,14 +92,13 @@ const ApiController = {
     },
 
     async schema_get(req, res) {
-        const db = req.body.db;
-        const coll = req.body.coll;
+        const db = req.query.db;
+        const coll = req.query.coll;
 
         // Schema Db
         const schema_db = 'mongozap';
         const schema_coll = 'fields';
-        Mongo.setDbName(schema_db);
-        const SchemaModel = await Mongo.get(schema_coll);
+        const SchemaModel = await Mongo.get(schema_db, schema_coll);
 
         // Query
         let query = { db, coll };
@@ -100,12 +106,27 @@ const ApiController = {
         res.json(result);
     },
 
+    async schema_post(req, res) {
+        // Get Collection
+        const db = req.body.db;
+        const coll = req.body.coll;
+        const rebuild = req.body.rebuild;
+
+        await SchemaMgr.init('mongozap', 'fields');
+
+        if(rebuild) {
+            await SchemaMgr.rebuild(db, coll);
+        }
+
+        res.json({ status: "success" });
+
+    },
+
     async build_schema(req, res) {
         // Get Collection
         const db = req.body.db;
         const coll = req.body.coll;
-        Mongo.setDbName(db);
-        const Model = await Mongo.get(coll);
+        const Model = await Mongo.get(db, coll);
         result = await Model.deleteMany();
         res.json({ status: 'success', result });
     },

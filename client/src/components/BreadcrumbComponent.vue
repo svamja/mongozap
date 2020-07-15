@@ -8,7 +8,7 @@
   <span class="text-muted">/</span>
   <b-button variant="link" :to="'/database/' + database + '/collections'">{{ database }}</b-button>
   <span class="text-muted">/</span>
-  <b-button variant="link">{{ displayCollection }}</b-button>
+  <b-button variant="link" :to="'/collection/' + collection + '/index'">{{ displayCollection }}</b-button>
   <span class="text-muted">/</span>
   <b-dropdown id="dropdown-dropright" dropright :text="action" variant="muted" class="text-muted">
     <b-dropdown-item href="#">Home</b-dropdown-item>

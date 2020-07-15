@@ -31,6 +31,7 @@
       :key="collection.name">
       <router-link :to="'/collection/' + collection.name + '/index'">
         {{ collection.displayName }}
+        <span v-if="collection.displayCount">({{ collection.displayCount }})</span>
       </router-link>
     </div>
   </div>
@@ -61,7 +62,21 @@ export default {
     this.database = this.$storage.get('database');
     this.collections = await MongoService.collections(this.database);
     const displayField = ConfigService.get('collection_display');
-    this.collections.forEach(x => x.displayName = x[displayField]);
+    this.collections.forEach(function(coll) {
+      coll.displayName = coll[displayField];
+      if(coll.count) {
+        if(coll.count > 1000 && coll.count < 1000000) {
+          coll.displayCount = Math.floor(coll.count/1000) + 'k';
+        }
+        else if(coll.count > 1000000) {
+          coll.displayCount = Math.floor(coll.count/1000000) + 'm';
+        }
+        else {
+          coll.displayCount = '' + coll.count;
+        }
+      }
+
+    });
   },
   computed: {
     filtered_collections() {

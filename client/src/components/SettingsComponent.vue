@@ -149,13 +149,3 @@ export default {
 
 </script>
 
-<style scoped>
-
-.table-container .row {
-  border-top: solid 1px #ccc;
-}
-.table-container .row:last-child {
-  border-bottom: solid 1px #ccc;
-}
-
-</style>

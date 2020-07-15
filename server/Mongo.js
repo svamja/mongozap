@@ -40,10 +40,11 @@ class Mongo {
         Mongo.dbName = dbName;
     }
 
-    static async get(model_name) {
+    static async get(dbName, model_name) {
         if(!model_name) {
             throw new Error('model name is missing');
         }
+        Mongo.setDbName(dbName);
         let coll_name = _.snakeCase(model_name);
         let coll = await Mongo.get_collection(coll_name);
         return new Mongo(model_name, coll);
@@ -77,6 +78,25 @@ class Mongo {
             const name = collection.collectionName;
             const model_name = _.startCase(name).replace(/ /g, '');
             collections.push({ name, model_name });
+        }
+        return collections;
+    }
+
+    static async get_coll_stats(dbName) {
+        const dbUrl = 'mongodb://localhost/';
+        const options = { useUnifiedTopology: true, useNewUrlParser: true };
+        const client = await mongodb.MongoClient.connect(dbUrl, options);
+        const db = await client.db(dbName);
+        const result = await db.collections();
+        let collections = [];
+        for(let collection of result) {
+            const name = collection.collectionName;
+            const model_name = _.startCase(name).replace(/ /g, '');
+            collections.push({ name, model_name });
+        }
+        for(let collection of collections) {
+            let coll = await db.collection(collection.name);
+            collection.count = await coll.estimatedDocumentCount();
         }
         return collections;
     }
@@ -283,10 +303,10 @@ class Mongo {
 
         let primary = chain.shift();
         this.lookup_counts[primary.model] = 0;
-        const Primary = await Mongo.get(primary.model);
+        const Primary = await Mongo.get(primary.db, primary.model);
         let bead;
         for(bead of chain) {
-            bead.Model = await Mongo.get(bead.model);
+            bead.Model = await Mongo.get(bead.db, bead.model);
             this.lookup_counts[bead.model] = 0;
         }
         this.lookup_counts['out'] = 0;

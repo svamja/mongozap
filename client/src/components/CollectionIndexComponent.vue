@@ -4,6 +4,8 @@
 <div class="container">
 
   <div class="row">
+
+    <!-- Breadcrumb -->
     <div class="col-auto">
       <BreadcrumbComponent
           :database="database"
@@ -13,26 +15,30 @@
           />
     </div>
 
+    <!-- Toolbar -->
     <div class="col-auto my-auto pl-0 ml-auto">
 
       <a v-shortkey.once="['/']" 
-        @shortkey="openSearch()" href="#" @click="openSearch()"
+        @shortkey="openSearch()" href="#" @click.stop.prevent="openSearch()"
         v-b-tooltip.hover title="Search (/)">
         <span class="fa fa-search"></span>
       </a>
       <a class="ml-2" v-shortkey.once="['r']"
-        @shortkey="reload()" href="#" @click="reload()"
+        @shortkey="reload()" href="#" @click.stop.prevent="reload()"
         v-b-tooltip.hover title="Reload (r)">
         <span class="fa fa-sync"></span>
       </a>
       <a class="ml-2" v-shortkey.once="['shift', '?']"
-        @shortkey="openShortcuts()" href="#" @click="openShortcuts()"
+        @shortkey="openShortcuts()" href="#" @click.stop.prevent="openShortcuts()"
         v-b-tooltip.hover title="Keyboard Shortcuts (?)">
         <span class="fa fa-question-circle"></span>
       </a>
     </div>
 
     <!-- Pagination -->
+    <div class="col-auto my-auto" v-b-tooltip.hover :title="totalRows">
+      {{ displayTotal }}
+    </div>
     <div class="col-auto my-auto pl-0">
       <b-form-select
         v-model="perPage"
@@ -180,6 +186,7 @@ export default {
       fields: null,
       perPage: 20,
       totalRows: 2000,
+      displayTotal: '100+',
       currentPage: 1,
       pageOptions: [ 5, 10, 20, 50, 100, 500, 1000, 2000 ]
     }
@@ -200,6 +207,20 @@ export default {
     }
   },
 
+  watch: {
+    totalRows(val) {
+      if(val > 1000 && val < 1000000) {
+        this.displayTotal = Math.floor(val/1000) + 'k';
+      }
+      else if(val > 1000000) {
+        this.displayTotal = Math.floor(val/1000000) + 'm';
+      }
+      else {
+        this.displayTotal = '' + val;
+      }
+    },
+  },
+
   methods: {
 
     async reload() {
@@ -208,7 +229,9 @@ export default {
     
     async records_fn(ctx) {
       ctx.query = this.query;
-      let records = await MongoService.records(this.database, this.collection, ctx);
+      let result = await MongoService.records(this.database, this.collection, ctx);
+      let records = result.records;
+      this.totalRows = result.count;
       this.isCollEmpty = !records.length;
       return records;
     },

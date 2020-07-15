@@ -13,6 +13,7 @@ import './scss/theme.scss';
 // import '../node_modules/highlight.js/scss/vs.scss';
 // import '../node_modules/highlight.js/scss/github.scss';
 import '../node_modules/highlight.js/scss/github-gist.scss';
+import './scss/mongozap.scss';
 
 Vue.config.productionTip = false
 
