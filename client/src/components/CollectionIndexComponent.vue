@@ -8,11 +8,11 @@
     <!-- Breadcrumb -->
     <div class="col-auto">
       <BreadcrumbComponent
-          :database="database"
-          :collection="collection" 
-          :display-collection="displayCollection" 
-          action="Browse"
-          />
+        :database="database"
+        :collection="collection" 
+        :display-collection="displayCollection" 
+        action="Browse"
+      />
     </div>
 
     <!-- Toolbar -->
@@ -64,6 +64,7 @@
   <!-- Table -->
   <b-table id="records_table" ref="bv_table" bordered small
     :items="records_fn"
+    :fields="fields"
     :current-page="currentPage"
     :per-page="perPage">
 
@@ -233,7 +234,22 @@ export default {
       let records = result.records;
       this.totalRows = result.count;
       this.isCollEmpty = !records.length;
+      if(result.schema && result.schema.fields) {
+        this.fields = this.map_fields(result.schema.fields);
+      }
       return records;
+    },
+
+    map_fields(schema_fields) {
+      return schema_fields.map(function(field) {
+        let key = field;
+        let label = field;
+        let sortable;
+        if(key == '_id') {
+          sortable = true;
+        }
+        return { key, label, sortable };
+      });
     },
     
     async clearCollection() {

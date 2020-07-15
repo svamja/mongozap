@@ -63,18 +63,20 @@
     <div class="row">
       <div class="col">
         Settings Database
+        <div class="small">process.env.SETTINGS_DB <br/> (see .env file)</div>
       </div>
       <div class="col p-1">
-        <b-form-input v-model="settings_database"></b-form-input>
+        <b-form-input v-model="server.settings_database" readonly></b-form-input>
       </div>
     </div>
 
     <div class="row">
       <div class="col">
         Settings Collection
+        <div class="small">process.env.SETTINGS_COLL <br/> (see .env file)</div>
       </div>
       <div class="col p-1">
-        <b-form-input v-model="settings_collection"></b-form-input>
+        <b-form-input v-model="server.settings_collection" readonly></b-form-input>
       </div>
     </div>
 
@@ -83,7 +85,7 @@
         Schema Database
       </div>
       <div class="col p-1">
-        <b-form-input v-model="schema_database"></b-form-input>
+        <b-form-input v-model="server.schema_database"></b-form-input>
       </div>
     </div>
 
@@ -92,7 +94,7 @@
         Schema Collection
       </div>
       <div class="col p-1">
-        <b-form-input v-model="schema_collection"></b-form-input>
+        <b-form-input v-model="server.schema_collection"></b-form-input>
       </div>
     </div>
 
@@ -114,34 +116,47 @@
 <script>
 
 import ConfigService from '../ConfigService';
+import MongoService from '../MongoService';
 
 export default {
+
   data() {
     return {
       collection_display: '',
       records_display_default: '',
-      settings_database: '',
-      settings_collection: '',
-      schema_database: '',
-      schema_collection: '',
+      server: {
+        settings_database: '',
+        settings_collection: '',
+        schema_database: '',
+        schema_collection: '',
+      }
     }
   },
+
   async created () {
     this.collection_display = ConfigService.get('collection_display') || 'name';
     this.records_display_default = ConfigService.get('records_display_default') || 'table';
-    this.settings_database = ConfigService.get('settings_database') || 'mongozap';
-    this.settings_collection = ConfigService.get('settings_collection') || 'settings';
-    this.schema_database = ConfigService.get('schema_database') || 'mongozap';
-    this.schema_collection = ConfigService.get('schema_collection') || 'schema_fields';
+    await this.loadServerSettings(true);
   },
   
   methods: {
-    saveClientSettings: function() {
+
+    saveClientSettings() {
       ConfigService.set('collection_display', this.collection_display);
       ConfigService.set('records_display_default', this.records_display_default);
-      ConfigService.set('setttings_database', this.setttings_database);
-      ConfigService.set('setttings_collection', this.setttings_collection);
     },
+
+    async loadServerSettings(reload) {
+      let settings = await ConfigService.getServerSettings(reload);
+      for(let key in this.server) {
+        this.server[key] = settings[key];
+      }
+    },
+
+    async saveServerSettings() {
+      await ConfigService.saveServerSettings(this.server);
+    },
+
   },
 
 }

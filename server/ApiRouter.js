@@ -18,5 +18,11 @@ router.post('/collection/drop', MainController.collection_drop);
 router.get('/collection/schema', MainController.schema_get);
 router.post('/collection/schema', MainController.schema_post);
 
+// Bulk Operations (Update, Replace, etc)
+router.post('/collection/bulk', MainController.bulk);
+
+// Manage Config
+router.get('/config/get', MainController.config_get);
+router.post('/config/set', MainController.config_post);
 
 module.exports = router;

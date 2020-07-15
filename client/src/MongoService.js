@@ -34,6 +34,14 @@ class MongoService {
             if(ctx.query) {
                 data.query = JSON.stringify(ctx.query);
             }
+            if(ctx.sortBy) {
+                let sortdir = 1;
+                if(ctx.sortDesc) {
+                    sortdir = -1;
+                }
+                data.sort = {};
+                data.sort[ctx.sortBy] = sortdir;
+            }
         }
         const res = await axios.post(url, data);
         const result = res.data;
@@ -65,6 +73,26 @@ class MongoService {
         let data = { db, coll, rebuild: true };
         const res = await axios.post(url, data);
         return res.data;
+    }
+
+    static async bulkOps(db, coll, ops) {
+        let url = baseUrl + '/collection/bulk';
+        let data = { db, coll, ops };
+        const res = await axios.post(url, data);
+        return res.data;
+    }
+
+    static async configGet() {
+        let url = baseUrl + `/config/get`;
+        const res = await axios.get(url);
+        return res.data;
+    }
+
+    static async configSet(settings) {
+        let url = baseUrl + `/config/set`;
+        let data = { settings };
+        let res = await axios.post(url, data);
+        return res;
     }
 
 }
