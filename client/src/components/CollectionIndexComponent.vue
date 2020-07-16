@@ -8,6 +8,7 @@
     <!-- Breadcrumb -->
     <div class="col-auto">
       <BreadcrumbComponent
+        :connection="connection"
         :database="database"
         :collection="collection" 
         :display-collection="displayCollection" 
@@ -18,7 +19,12 @@
     <!-- Toolbar -->
     <div class="col-auto my-auto pl-0 ml-auto">
 
-      <a v-shortkey.once="['/']" 
+      <a v-shortkey.once="['i']" 
+        @shortkey="openInsert()" href="#" @click.stop.prevent="openInsert()"
+        v-b-tooltip.hover title="Insert (i)">
+        <span class="fa fa-plus"></span>
+      </a>
+      <a class="ml-2" v-shortkey.once="['/']" 
         @shortkey="openSearch()" href="#" @click.stop.prevent="openSearch()"
         v-b-tooltip.hover title="Search (/)">
         <span class="fa fa-search"></span>
@@ -69,7 +75,7 @@
     :per-page="perPage">
 
       <template v-slot:cell(_id)="row">
-        <div @click="row.toggleDetails">{{ row.item._id }}</div>
+        <div @click="row.toggleDetails" class="id-field">{{ row.item._id }}</div>
       </template>
 
       <template v-slot:row-details="row">
@@ -86,6 +92,23 @@
       </div>
     </div>
   </div>
+
+  <!-- Insert Modal -->
+  <b-modal id="insert-modal" title="Insert Document" v-model="showInsertModal">
+    <b-textarea v-model="query_text" rows="8" autofocus></b-textarea>
+    <template v-slot:modal-footer>
+      <div class="w-100">
+        <b-button
+          variant="primary"
+          size="sm"
+          class="float-right"
+          @click="saveSearch()"
+        >
+          Save
+        </b-button>
+      </div>
+    </template>
+  </b-modal>
 
   <!-- Search Modal -->
   <b-modal id="search-modal" title="Search" v-model="showSearchModal">
@@ -175,11 +198,13 @@ export default {
 
   data() {
     return {
+      connection: '',
+      database: '',
+      collection: '',
+      showInsertModal: false,
       showSearchModal: false,
       showShortcutsModal: false,
       isCollEmpty: false,
-      database: '[db]',
-      collection: '',
       displayCollection: '',
       search_text: '',
       query_text: '',
@@ -194,11 +219,9 @@ export default {
   },
 
   async created () {
-    if(this.$route.params.collection) {
-      this.$storage.set('collection', this.$route.params.collection);
-    }
-    this.database = this.$storage.get('database');
-    this.collection = this.$storage.get('collection');
+    this.connection = this.$route.params.connection;
+    this.database = this.$route.params.database;
+    this.collection = this.$route.params.collection;
     const displayField = ConfigService.get('collection_display');
     if(displayField == 'name') {
       this.displayCollection = this.collection;
@@ -259,7 +282,11 @@ export default {
     
     async dropCollection() {
       await MongoService.drop(this.database, this.collection);
-      this.$router.push('/database/' + this.database + '/collections');
+      this.$router.push(`/db/${this.connection}/${this.database}/index`);
+    },
+    
+    openInsert() {
+      this.showInsertModal = true;
     },
     
     openSearch() {
@@ -308,10 +335,16 @@ td {
   overflow:hidden;
   white-space: nowrap;
 }
+
 /*td:hover {
     overflow: visible; 
     white-space: normal;
     height:auto;
 }*/
+
+.id-field {
+  color: var(--primary);
+  cursor: pointer;
+}
 
 </style>

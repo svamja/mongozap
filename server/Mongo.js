@@ -67,6 +67,14 @@ class Mongo {
         return result.databases;
     }
 
+    static async get_database(dbName) {
+        const dbUrl = 'mongodb://localhost/';
+        const options = { useUnifiedTopology: true, useNewUrlParser: true };
+        const client = await mongodb.MongoClient.connect(dbUrl, options);
+        const db = await client.db(dbName);
+        return db;
+    }
+
     static async get_collections(dbName) {
         const dbUrl = 'mongodb://localhost/';
         const options = { useUnifiedTopology: true, useNewUrlParser: true };

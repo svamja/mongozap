@@ -6,7 +6,7 @@
   <!-- Breadcrumb -->
   <div class="row">
     <div class="col">
-      <b-button class="ml-0 pl-0" variant="link" to="/databases">Databases</b-button>
+      <b-button class="ml-0 pl-0" variant="link" :to="'/db/' + connection + '/list'">Databases</b-button>
     </div>
   </div>
 
@@ -23,7 +23,7 @@
   <div class="row">
     <div class="col">
       <div v-for="database in filtered_databases" :key="database.name">
-        <router-link :to="'/database/' + database.name + '/collections'">
+        <router-link :to="'/db/' + connection + '/' + database.name + '/index'">
           {{ database.name }}
         </router-link>
 
@@ -43,12 +43,14 @@ import MongoService from '../MongoService';
 export default {
     data() {
       return {
+        connection: '',
         databases: [],
         search_text: '',
       }
     },
     async created() {
-        this.databases = await MongoService.databases();
+      this.connection = this.$route.params.connection;
+      this.databases = await MongoService.databases();
     },
     computed: {
       filtered_databases() {

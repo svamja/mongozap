@@ -38,11 +38,11 @@ const SchemaMgr = {
         let fields = this.schema_fields(schema.fields, db, coll);
 
         // Insert Fields
-        await this.SchemaModel.insertMany(fields);
+        let r = await this.SchemaModel.insertMany(fields);
 
     },
 
-    schema_fields(curr_fields, db, coll) {
+    schema_fields(curr_fields, db, coll, parent) {
         this.fields = this.fields || [];
         this.depth++;
         for(let curr_field of curr_fields) {
@@ -82,17 +82,23 @@ const SchemaMgr = {
                 }
             }
 
+            // Probability
+            let probability = Math.round(curr_field.probability * 100);
+
             // Insert Field
-            this.fields.push({ name, path, depth, type, sub_type, db, coll });
+            this.fields.push({ name, path, depth, type, sub_type, probability, parent, db, coll });
+
+            // Traversal - Parent
+            let next_parent = { path: curr_field.path, type };
 
             // Document
             if(type == 'Document' && types[0].fields) {
-                this.schema_fields(types[0].fields, db, coll);
+                this.schema_fields(types[0].fields, db, coll, next_parent);
             }
 
             // Array of Document
-            if(sub_type == 'Document') {
-                this.schema_fields(sub_types[0].fields, db, coll);
+            if(type == 'Array' && sub_type == 'Document') {
+                this.schema_fields(sub_types[0].fields, db, coll, next_parent);
             }
 
         }

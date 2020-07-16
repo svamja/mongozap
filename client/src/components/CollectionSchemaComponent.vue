@@ -6,6 +6,7 @@
 
     <div class="col-auto">
       <BreadcrumbComponent
+        :connection="connection"
         :database="database"
         :collection="collection" 
         :display-collection="displayCollection" 
@@ -55,6 +56,7 @@
         <div class="col">
           {{ field.type }}
           <span v-if="field.sub_type">({{ field.sub_type }})</span>
+          <span v-if="field.probability" class="small text-muted">({{ field.probability }}%)</span>
         </div>
       </div>
     </div>
@@ -89,7 +91,8 @@ export default {
 
   data() {
     return {
-      database: '[db]',
+      connection: '',
+      database: '',
       collection: '',
       displayCollection: '',
       isSchemaEmpty: false,
@@ -98,11 +101,9 @@ export default {
   },
 
   async created () {
-    if(this.$route.params.collection) {
-      ConfigService.set('collection', this.$route.params.collection);
-    }
-    this.database = ConfigService.get('database');
-    this.collection = ConfigService.get('collection');
+    this.connection = this.$route.params.connection;
+    this.database = this.$route.params.database;
+    this.collection = this.$route.params.collection;
     const displayField = ConfigService.get('collection_display');
     if(displayField == 'name') {
       this.displayCollection = this.collection;

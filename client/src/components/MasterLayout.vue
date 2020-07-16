@@ -12,8 +12,7 @@
     <b-collapse id="nav-collapse" is-nav>
       <b-navbar-nav>
         <b-nav-item href="#"><router-link to="/">Connections</router-link></b-nav-item>
-        <b-nav-item href="#"><router-link to="/databases">Databases</router-link></b-nav-item>
-        <b-nav-item href="#"><router-link to="/collections">Collections</router-link></b-nav-item>
+        <b-nav-item href="#"><router-link to="/db/1/list">Databases</router-link></b-nav-item>
         <b-nav-item href="#"><router-link to="/settings">Settings</router-link></b-nav-item>
       </b-navbar-nav>
 
@@ -42,6 +41,25 @@
 </div>
 
 </template>
+
+<script>
+
+export default {
+  data() {
+    return {
+      connection: '',
+      database: '',
+      collection: '',
+    }
+  },
+  async created () {
+    this.connection = this.$route.params.connection;
+    this.database = this.$route.params.database;
+  }
+}
+
+</script>
+
 
 <style>
 

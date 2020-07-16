@@ -4,6 +4,7 @@ const MainController = require('./ApiController');
 const router = express.Router();
 
 router.get('/databases', MainController.databases);
+router.get('/db/info', MainController.db_info);
 router.get('/collections', MainController.collections);
 
 // Browse / Listing

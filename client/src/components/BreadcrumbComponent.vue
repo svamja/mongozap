@@ -4,19 +4,17 @@
 <div>
 
   <!-- Breadcrumb -->
-  <b-button class="ml-0 pl-0" variant="link" to="/databases">Databases</b-button>
+  <b-button variant="link" :to="`/db/${connection}/${database}/index`">{{ database }}</b-button>
   <span class="text-muted">/</span>
-  <b-button variant="link" :to="'/database/' + database + '/collections'">{{ database }}</b-button>
-  <span class="text-muted">/</span>
-  <b-button variant="link" :to="'/collection/' + collection + '/index'">{{ displayCollection }}</b-button>
+  <b-button variant="link" :to="`/coll/${connection}/${database}/${collection}/index`">{{ displayCollection }}</b-button>
   <span class="text-muted">/</span>
   <b-dropdown id="dropdown-dropright" dropright :text="action" variant="muted" class="text-muted">
     <b-dropdown-item href="#">Home</b-dropdown-item>
-    <b-dropdown-item href="#" :to="'/collection/' + collection + '/index'">
+    <b-dropdown-item href="#" :to="`/coll/${connection}/${database}/${collection}/index`">
         Browse
     </b-dropdown-item>
     <b-dropdown-item href="#" v-b-modal.search-modal>Search</b-dropdown-item>
-    <b-dropdown-item href="#" :to="'/collection/' + collection + '/schema'">
+    <b-dropdown-item href="#" :to="`/coll/${connection}/${database}/${collection}/schema`">
         Schema
     </b-dropdown-item>
     <b-dropdown-item href="#" v-b-modal.clear-confirmation-modal variant="danger">Clear</b-dropdown-item>
@@ -29,10 +27,8 @@
 
 <script>
 
-import ConfigService from '../ConfigService';
-
 export default {
-  props: [ "database", "collection",  "displayCollection", "action" ]
+  props: [ "connection", "database", "collection",  "displayCollection", "action" ]
 }
 
 

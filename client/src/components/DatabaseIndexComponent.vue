@@ -5,13 +5,11 @@
 
   <div class="row">
     <div class="col">
-      <b-button class="ml-0 pl-0" variant="link" to="/databases">Databases</b-button>
-      <span class="text-muted">/</span>
       <b-button variant="link">{{ database }}</b-button>
       <span class="text-muted">/</span>
       <b-dropdown id="dropdown-dropright" dropright text="Collections" variant="muted" class="text-muted">
-        <b-dropdown-item href="#">Home</b-dropdown-item>
-        <b-dropdown-item href="#">Collections</b-dropdown-item>
+        <b-dropdown-item :to="`/db/${connection}/${database}/home`">Home</b-dropdown-item>
+        <b-dropdown-item :to="`/db/${connection}/${database}/index`">Collections</b-dropdown-item>
       </b-dropdown>
     </div>
   </div>
@@ -29,7 +27,7 @@
   <div class="row">
     <div class="col-md-3 col-sm-6" v-for="collection in filtered_collections"
       :key="collection.name">
-      <router-link :to="'/collection/' + collection.name + '/index'">
+      <router-link :to="`/coll/${connection}/${database}/${collection.name}/index`">
         {{ collection.displayName }}
         <span v-if="collection.displayCount">({{ collection.displayCount }})</span>
       </router-link>
@@ -48,18 +46,16 @@ import MongoService from '../MongoService';
 export default {
   data() {
     return {
-      database: '[db]',
+      connection: '',
+      database: '',
       search_text: '',
       collections: [],
-      display: '',
       single_filter: false
     }
   },
   async created () {
-    if(this.$route.params.database) {
-      this.$storage.set('database', this.$route.params.database);
-    }
-    this.database = this.$storage.get('database');
+    this.connection = this.$route.params.connection;
+    this.database = this.$route.params.database;
     this.collections = await MongoService.collections(this.database);
     const displayField = ConfigService.get('collection_display');
     this.collections.forEach(function(coll) {
@@ -108,7 +104,7 @@ export default {
             }
           }
         }
-        this.$router.push('/collection/' + collection.name + '/index');
+        this.$router.push(`/coll/${this.connection}/${this.database}/${collection.name}/index`);
       }
     }
   }

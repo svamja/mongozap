@@ -10,6 +10,27 @@ const ApiController = {
         res.json(databases);
     },
 
+    db_info: async function(req, res) {
+        const dbName = req.query.db;
+
+        // Get Stats
+        const db = await Mongo.get_database(dbName);
+        let info = await db.stats();
+
+        // Get Schema Info
+        const schema_db = await SettingsMgr.get('schema_database');
+        const schema_coll = await SettingsMgr.get('schema_collection');
+        const SchemaModel = await Mongo.get(schema_db, schema_coll);
+        let pipeline = [
+            { '$match' : { 'db': dbName } },
+            { '$group' : { _id: "$coll" } }
+        ];
+        records = await SchemaModel.aggregate(pipeline).toArray();
+        info.schema_count = records.length;
+
+        res.json(info);
+    },
+
     collections: async function(req, res) {
         const db = req.query.db;
         const collections = await Mongo.get_coll_stats(db);
@@ -57,7 +78,6 @@ const ApiController = {
 
         // Sort
         if(sort) {
-            console.log('sorting enabled', sort);
             await cursor.sort(sort);
         }
 

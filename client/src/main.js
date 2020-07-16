@@ -19,7 +19,8 @@ Vue.config.productionTip = false
 
 import ConnectionsComponent from './components/ConnectionsComponent';
 import DatabasesComponent from './components/DatabasesComponent';
-import CollectionsComponent from './components/CollectionsComponent';
+import DatabaseHomeComponent from './components/DatabaseHomeComponent';
+import DatabaseIndexComponent from './components/DatabaseIndexComponent';
 import CollectionIndexComponent from './components/CollectionIndexComponent';
 import CollectionSchemaComponent from './components/CollectionSchemaComponent';
 import SettingsComponent from './components/SettingsComponent';
@@ -33,11 +34,11 @@ Vue.use(VueHighlightJS);
 
 const routes = [
   { path: '/', component: ConnectionsComponent },
-  { path: '/databases', component: DatabasesComponent },
-  { path: '/database/:database/collections', component: CollectionsComponent },
-  { path: '/collections', component: CollectionsComponent },
-  { path: '/collection/:collection/index', component: CollectionIndexComponent },
-  { path: '/collection/:collection/schema', component: CollectionSchemaComponent },
+  { path: '/db/:connection/list', component: DatabasesComponent },
+  { path: '/db/:connection/:database/home', component: DatabaseHomeComponent },
+  { path: '/db/:connection/:database/index', component: DatabaseIndexComponent },
+  { path: '/coll/:connection/:database/:collection/index', component: CollectionIndexComponent },
+  { path: '/coll/:connection/:database/:collection/schema', component: CollectionSchemaComponent },
   { path: '/settings', component: SettingsComponent }
 ];
 

@@ -95,6 +95,12 @@ class MongoService {
         return res;
     }
 
+    static async fetchDbInfo(db) {
+        let url = baseUrl + `/db/info?db=${db}`;
+        const res = await axios.get(url);
+        return res.data;
+    }
+
 }
 
 export default MongoService;
