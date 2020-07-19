@@ -50,7 +50,7 @@ export default {
     },
     async created() {
       this.connection = this.$route.params.connection;
-      this.databases = await MongoService.databases();
+      this.databases = await MongoService.databases(this.connection);
     },
     computed: {
       filtered_databases() {

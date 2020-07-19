@@ -4,16 +4,18 @@ const SettingsMgr = {
 
     settings: {
       settings_database: process.env.SETTINGS_DB,
-      settings_collection: process.env.SETTINGS_COLL
+      settings_collection: process.env.SETTINGS_COLL,
+      schema_database: 'mongozap',
+      schema_collection: 'fields',
     },
 
     loaded: false,
 
-    async loadSettings(reload = false) {
+    async loadSettings(connectionUrl, reload = false) {
       if(!reload && this.loaded) {
         return;
       }
-      this.Settings = this.Settings || await Mongo.get(process.env.SETTINGS_DB, process.env.SETTINGS_COLL);
+      this.Settings = this.Settings || await Mongo.get(connectionUrl, process.env.SETTINGS_DB, process.env.SETTINGS_COLL);
       let records = await this.Settings.find().toArray();
       for(let record of records) {
         let key = record.key
@@ -23,24 +25,24 @@ const SettingsMgr = {
       this.loaded = true;
     },
 
-    async get(key) {
-        await this.loadSettings();
+    async get(connectionUrl, key) {
+        await this.loadSettings(connectionUrl);
         return this.settings[key];
     },
 
-    async getAll() {
-        await this.loadSettings();
+    async getAll(connectionUrl) {
+        await this.loadSettings(connectionUrl);
         return this.settings;
     },
 
-    async set(key, value) {
+    async set(connectionUrl, key, value) {
       this.Settings = this.Settings || await Mongo.get(process.env.SETTINGS_DB, process.env.SETTINGS_COLL);
       this.Settings.updateOne(
         { key }, { key, value }, { upsert: true }
       );
     },
 
-    async setAll(settings) {
+    async setAll(connectionUrl, settings) {
       this.Settings = this.Settings || await Mongo.get(process.env.SETTINGS_DB, process.env.SETTINGS_COLL);
       await this.Settings.deleteMany();
       let records = [];

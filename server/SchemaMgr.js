@@ -4,15 +4,13 @@ const mongodbSchema = require('mongodb-schema');
 
 const SchemaMgr = {
 
-    async init(schema_db, schema_coll) {
-        this.schema_db = schema_db;
-        this.schema_coll = schema_coll;
-        this.SchemaModel = await Mongo.get(schema_db, schema_coll);
+    async init(connection_url, schema_db, schema_coll) {
+        this.SchemaModel = await Mongo.get(connection_url, schema_db, schema_coll);
     },
 
-    async rebuild(db, coll) {
+    async rebuild(connection_url, db, coll) {
 
-        const Model = await Mongo.get(db, coll);
+        const Model = await Mongo.get(connection_url, db, coll);
         const sort = { _id: -1 };
         const docs = await Model.find().sort(sort).limit(100).toArray();
 

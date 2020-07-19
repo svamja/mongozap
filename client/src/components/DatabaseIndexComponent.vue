@@ -56,7 +56,7 @@ export default {
   async created () {
     this.connection = this.$route.params.connection;
     this.database = this.$route.params.database;
-    this.collections = await MongoService.collections(this.database);
+    this.collections = await MongoService.collections(this.connection, this.database);
     const displayField = ConfigService.get('collection_display');
     this.collections.forEach(function(coll) {
       coll.displayName = coll[displayField];

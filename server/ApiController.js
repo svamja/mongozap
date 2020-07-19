@@ -6,21 +6,23 @@ const _ = require('lodash');
 const ApiController = {
 
     databases: async function(req, res) {
-        const databases = await Mongo.get_databases();
+        const connection_url = req.query.connection_url || req.body.connection_url;
+        const databases = await Mongo.get_databases(connection_url);
         res.json(databases);
     },
 
     db_info: async function(req, res) {
+        const connection_url = req.query.connection_url || req.body.connection_url;
         const dbName = req.query.db;
 
         // Get Stats
-        const db = await Mongo.get_database(dbName);
+        const db = await Mongo.get_database(connection_url, dbName);
         let info = await db.stats();
 
         // Get Schema Info
-        const schema_db = await SettingsMgr.get('schema_database');
-        const schema_coll = await SettingsMgr.get('schema_collection');
-        const SchemaModel = await Mongo.get(schema_db, schema_coll);
+        const schema_db = await SettingsMgr.get(connection_url, 'schema_database');
+        const schema_coll = await SettingsMgr.get(connection_url, 'schema_collection');
+        const SchemaModel = await Mongo.get(connection_url, schema_db, schema_coll);
         let pipeline = [
             { '$match' : { 'db': dbName } },
             { '$group' : { _id: "$coll" } }
@@ -32,13 +34,15 @@ const ApiController = {
     },
 
     collections: async function(req, res) {
+        const connection_url = req.query.connection_url || req.body.connection_url;
         const db = req.query.db;
-        const collections = await Mongo.get_coll_stats(db);
+        const collections = await Mongo.get_coll_stats(connection_url, db);
         res.json(collections);
     },
 
     collection_index: async function(req, res) {
         // Get Params
+        const connection_url = req.query.connection_url || req.body.connection_url;
         const db = req.query.db;
         const coll = req.query.coll;
         const page = req.query.page;
@@ -70,7 +74,7 @@ const ApiController = {
 
 
         // Get Collection
-        const Model = await Mongo.get(db, coll);
+        const Model = await Mongo.get(connection_url, db, coll);
         let perPage = parseInt(req.query.perPage || 10);
 
         // Get Cursor
@@ -100,7 +104,7 @@ const ApiController = {
 
         // Schema (Fields)
         if(!ApiController.schema || ApiController.schema_coll != coll || ApiController.schema_db != db) {
-            await ApiController.loadSchema(db, coll);
+            await ApiController.loadSchema(connection_url, db, coll);
         }
         let schema = ApiController.schema;
 
@@ -108,10 +112,10 @@ const ApiController = {
         res.json({ records, count, schema });
     },
 
-    async loadSchema(db, coll) {
+    async loadSchema(connection_url, db, coll) {
 
-        let schema_db = await SettingsMgr.get('schema_database');
-        let schema_coll = await SettingsMgr.get('schema_collection');
+        let schema_db = await SettingsMgr.get(connection_url, 'schema_database');
+        let schema_coll = await SettingsMgr.get(connection_url, 'schema_collection');
 
         if(!schema_db || !schema_coll) {
             return;
@@ -119,7 +123,7 @@ const ApiController = {
 
         let query = { db, coll };
 
-        const SchemaModel = await Mongo.get(schema_db, schema_coll);
+        const SchemaModel = await Mongo.get(connection_url, schema_db, schema_coll);
         records = await SchemaModel.find(query).toArray();
 
         let fields = [];
@@ -139,18 +143,20 @@ const ApiController = {
 
     async collection_clear(req, res) {
         // Get Collection
+        const connection_url = req.query.connection_url || req.body.connection_url;
         const db = req.body.db;
         const coll = req.body.coll;
-        const Model = await Mongo.get(db, coll);
+        const Model = await Mongo.get(connection_url, db, coll);
         result = await Model.deleteMany();
         res.json({ status: 'success', result });
     },
 
     async collection_drop(req, res) {
         // Get Collection
+        const connection_url = req.query.connection_url || req.body.connection_url;
         const db = req.body.db;
         const coll = req.body.coll;
-        const Model = await Mongo.get(db, coll);
+        const Model = await Mongo.get(connection_url, db, coll);
         result = await Model.drop();
         res.json({ status: 'success', result });
     },
@@ -158,18 +164,20 @@ const ApiController = {
     //TODO: Get Collection Info
     async collection_get(req, res) {
         // Get Params
+        const connection_url = req.query.connection_url || req.body.connection_url;
         const db = req.query.db;
         const coll = req.query.coll;
     },
 
     async schema_get(req, res) {
+        const connection_url = req.query.connection_url || req.body.connection_url;
         const db = req.query.db;
         const coll = req.query.coll;
 
         // Schema Db
-        const schema_db = await SettingsMgr.get('schema_database');
-        const schema_coll = await SettingsMgr.get('schema_collection');
-        const SchemaModel = await Mongo.get(schema_db, schema_coll);
+        const schema_db = await SettingsMgr.get(connection_url, 'schema_database');
+        const schema_coll = await SettingsMgr.get(connection_url, 'schema_collection');
+        const SchemaModel = await Mongo.get(connection_url, schema_db, schema_coll);
 
         // Query
         let query = { db, coll };
@@ -179,16 +187,17 @@ const ApiController = {
 
     async schema_post(req, res) {
         // Get Collection
+        const connection_url = req.query.connection_url || req.body.connection_url;
         const db = req.body.db;
         const coll = req.body.coll;
         const rebuild = req.body.rebuild;
 
-        const schema_db = await SettingsMgr.get('schema_database');
-        const schema_coll = await SettingsMgr.get('schema_collection');
-        await SchemaMgr.init(schema_db, schema_coll);
+        const schema_db = await SettingsMgr.get(connection_url, 'schema_database');
+        const schema_coll = await SettingsMgr.get(connection_url, 'schema_collection');
+        await SchemaMgr.init(connection_url, schema_db, schema_coll);
 
         if(rebuild) {
-            await SchemaMgr.rebuild(db, coll);
+            await SchemaMgr.rebuild(connection_url, db, coll);
         }
 
         res.json({ status: "success" });
@@ -196,22 +205,25 @@ const ApiController = {
     },
 
     async bulk(req, res) {
+        const connection_url = req.query.connection_url || req.body.connection_url;
         const db = req.body.db;
         const coll = req.body.coll;
         const ops = req.body.ops;
-        const Model = await Mongo.get(db, coll);
+        const Model = await Mongo.get(connection_url, db, coll);
         await Model.bulkWrite(ops);
         res.json({ status: 'success' });
     },
 
     async config_get(req, res) {
-        let settings = await SettingsMgr.getAll();
+        const connection_url = req.query.connection_url || req.body.connection_url;
+        let settings = await SettingsMgr.getAll(connection_url);
         res.json(settings);
     },
 
     async config_post(req, res) {
+        const connection_url = req.query.connection_url || req.body.connection_url;
         let settings = req.body.settings;
-        await SettingsMgr.setAll(settings);
+        await SettingsMgr.setAll(connection_url, settings);
         res.json({ status: 'success' });
     },
 

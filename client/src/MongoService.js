@@ -1,21 +1,43 @@
 import axios from 'axios';
 import _ from 'lodash';
+import ConfigService from './ConfigService';
 
 const baseUrl = 'api';
 
 class MongoService {
 
+    static async api_call(method, path, params) {
+
+        // Resolve Connection Id to Connection URL
+        if(params.connection_id) {
+            let connections = ConfigService.get('connections');
+            if(connections[params.connection_id]) {
+                params.connection_url = connections[params.connection_id].url;
+            }
+            delete(params.connection_id);
+        }
+
+        let res;
+        let url = baseUrl + path;
+
+        if(method == 'get') {
+            let data = { params };
+            res = await axios.get(url, data);
+        }
+        return res;
+    }
+
     // Get Collections
-    static async databases() {
-        const url = baseUrl + '/databases';
-        const res = await axios.get(url);
+    static async databases(connection_id) {
+        const res = await this.api_call('get', '/databases', { connection_id });
         return res.data;
     }
 
     // Get Collections
-    static async collections(db) {
-        const url = baseUrl + `/collections?db=${db}`;
-        const res = await axios.get(url);
+    static async collections(connection_id, db) {
+        const res = await this.api_call('get', '/collections', { connection_id, db })
+        // const url = baseUrl + `/collections?db=${db}`;
+        // const res = await axios.get(url);
         let collections = res.data;
         collections = _.sortBy(collections, [ 'name' ]);
         return collections;
