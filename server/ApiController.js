@@ -109,8 +109,14 @@ const ApiController = {
     },
 
     async loadSchema(db, coll) {
+
         let schema_db = await SettingsMgr.get('schema_database');
         let schema_coll = await SettingsMgr.get('schema_collection');
+
+        if(!schema_db || !schema_coll) {
+            return;
+        }
+
         let query = { db, coll };
 
         const SchemaModel = await Mongo.get(schema_db, schema_coll);
