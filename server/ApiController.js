@@ -20,8 +20,8 @@ const ApiController = {
         let info = await db.stats();
 
         // Get Schema Info
-        const schema_db = await SettingsMgr.get(connection_url, 'schema_database');
-        const schema_coll = await SettingsMgr.get(connection_url, 'schema_collection');
+        const schema_db = await SettingsMgr.get('mongozap_database');
+        const schema_coll = 'fields';
         const SchemaModel = await Mongo.get(connection_url, schema_db, schema_coll);
         let pipeline = [
             { '$match' : { 'db': dbName } },
@@ -43,24 +43,25 @@ const ApiController = {
     collection_index: async function(req, res) {
         // Get Params
         const connection_url = req.query.connection_url || req.body.connection_url;
-        const db = req.query.db;
-        const coll = req.query.coll;
-        const page = req.query.page;
-            
+        const db = req.query.db || req.body.db;
+        const coll = req.query.coll || req.body.coll;
+        const page = req.query.page || req.body.page;
+
         // Query
-        let query = null;
-        if(req.body && req.body.query) {
-            if(_.isString(req.body.query)) {
+        let query;
+        let input_query = req.query.query || req.body.query;
+        if(input_query) {
+            if(_.isString(input_query)) {
                 try {
-                    query = JSON.parse(req.body.query)
+                    query = JSON.parse(input_query)
                 }
                 catch(err) {}
             }
-            else if(_.isPlainObject(req.body.query)) {
-                query = req.body.query;
+            else if(_.isPlainObject(input_query)) {
+                query = input_query;
             }
         }
-        if(!query) {
+        if(!input_query) {
             query = {};
         }
 
@@ -71,7 +72,6 @@ const ApiController = {
                 sort = req.body.sort;
             }
         }
-
 
         // Get Collection
         const Model = await Mongo.get(connection_url, db, coll);
@@ -114,8 +114,8 @@ const ApiController = {
 
     async loadSchema(connection_url, db, coll) {
 
-        let schema_db = await SettingsMgr.get(connection_url, 'schema_database');
-        let schema_coll = await SettingsMgr.get(connection_url, 'schema_collection');
+        let schema_db = await SettingsMgr.get('default_database');
+        let schema_coll = 'fields';
 
         if(!schema_db || !schema_coll) {
             return;
@@ -175,8 +175,8 @@ const ApiController = {
         const coll = req.query.coll;
 
         // Schema Db
-        const schema_db = await SettingsMgr.get(connection_url, 'schema_database');
-        const schema_coll = await SettingsMgr.get(connection_url, 'schema_collection');
+        const schema_db = await SettingsMgr.get('mongozap_database');
+        const schema_coll = 'fields';
         const SchemaModel = await Mongo.get(connection_url, schema_db, schema_coll);
 
         // Query
@@ -192,8 +192,8 @@ const ApiController = {
         const coll = req.body.coll;
         const rebuild = req.body.rebuild;
 
-        const schema_db = await SettingsMgr.get(connection_url, 'schema_database');
-        const schema_coll = await SettingsMgr.get(connection_url, 'schema_collection');
+        const schema_db = await SettingsMgr.get('mongozap_database');
+        const schema_coll = 'fields';
         await SchemaMgr.init(connection_url, schema_db, schema_coll);
 
         if(rebuild) {
@@ -214,16 +214,14 @@ const ApiController = {
         res.json({ status: 'success' });
     },
 
-    async config_get(req, res) {
-        const connection_url = req.query.connection_url || req.body.connection_url;
-        let settings = await SettingsMgr.getAll(connection_url);
+    async settings_get(req, res) {
+        let settings = await SettingsMgr.read();
         res.json(settings);
     },
 
-    async config_post(req, res) {
-        const connection_url = req.query.connection_url || req.body.connection_url;
-        let settings = req.body.settings;
-        await SettingsMgr.setAll(connection_url, settings);
+    async settings_set(req, res) {
+        let settings = req.body.settings || req.query.settings;
+        await SettingsMgr.write(settings);
         res.json({ status: 'success' });
     },
 

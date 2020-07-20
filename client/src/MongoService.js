@@ -6,14 +6,11 @@ const baseUrl = 'api';
 
 class MongoService {
 
-    static async api_call(method, path, params) {
+    static async api_call(method, path, params = {}) {
 
         // Resolve Connection Id to Connection URL
         if(params.connection_id) {
-            let connections = ConfigService.get('connections');
-            if(connections[params.connection_id]) {
-                params.connection_url = connections[params.connection_id].url;
-            }
+            params.connection_url = await ConfigService.connection(params.connection_id);
             delete(params.connection_id);
         }
 
@@ -23,6 +20,9 @@ class MongoService {
         if(method == 'get') {
             let data = { params };
             res = await axios.get(url, data);
+        }
+        else {
+            res = await axios.post(url, params);
         }
         return res;
     }
@@ -43,15 +43,14 @@ class MongoService {
         return collections;
     }
 
-    static async records(db, coll, ctx) {
-        let url = baseUrl + `/collection/index?db=${db}&coll=${coll}`;
-        let data = {};
+    static async records(connection_id, db, coll, ctx) {
+        let data = { connection_id, db, coll };
         if(ctx) {
             if(ctx.currentPage) {
-                url += '&page=' + (ctx.currentPage - 1);
+                data.page = (ctx.currentPage - 1);
             }
             if(ctx.perPage) {
-                url += '&perPage=' + ctx.perPage;
+                data.perPage = ctx.perPage;
             }
             if(ctx.query) {
                 data.query = JSON.stringify(ctx.query);
@@ -65,61 +64,49 @@ class MongoService {
                 data.sort[ctx.sortBy] = sortdir;
             }
         }
-        const res = await axios.post(url, data);
+        const res = await this.api_call('post', '/collection/index', data);
         const result = res.data;
         return result;
     }
 
-    static async clear(db, coll) {
-        let url = baseUrl + `/collection/clear`;
-        const data = { db, coll };
-        const res = await axios.post(url, data);
+    static async clear(connection_id, db, coll) {
+        const res = await this.api_call('post', '/collection/clear', { connection_id, db, coll });
         return res.data;
     }
 
-    static async drop(db, coll) {
-        let url = baseUrl + `/collection/drop`;
-        const data = { db, coll };
-        const res = await axios.post(url, data);
+    static async drop(connection_id, db, coll) {
+        const res = await this.api_call('post', '/collection/drop', { connection_id, db, coll });
         return res.data;
     }
 
-    static async loadSchema(db, coll) {
-        let url = baseUrl + `/collection/schema?db=${db}&coll=${coll}`;
-        const res = await axios.get(url);
+    static async loadSchema(connection_id, db, coll) {
+        const res = await this.api_call('get', '/collection/schema', { connection_id, db, coll });
         return res.data;
     }
 
-    static async rebuildSchema(db, coll) {
-        let url = baseUrl + `/collection/schema`;
-        let data = { db, coll, rebuild: true };
-        const res = await axios.post(url, data);
+    static async rebuildSchema(connection_id, db, coll) {
+        let rebuild = true;
+        const res = await this.api_call('get', '/collection/schema', { connection_id, db, coll, rebuild });
         return res.data;
     }
 
-    static async bulkOps(db, coll, ops) {
-        let url = baseUrl + '/collection/bulk';
-        let data = { db, coll, ops };
-        const res = await axios.post(url, data);
+    static async bulkOps(connection_id, db, coll, ops) {
+        const res = await this.api_call('post', '/collection/bulk', { connection_id, db, coll, ops });
         return res.data;
     }
 
-    static async configGet() {
-        let url = baseUrl + `/config/get`;
-        const res = await axios.get(url);
+    static async getServerSettings() {
+        const res = await this.api_call('get', '/settings/get');
         return res.data;
     }
 
-    static async configSet(settings) {
-        let url = baseUrl + `/config/set`;
-        let data = { settings };
-        let res = await axios.post(url, data);
+    static async setServerSettings(settings) {
+        const res = await this.api_call('post', '/settings/set', { settings });
         return res;
     }
 
-    static async fetchDbInfo(db) {
-        let url = baseUrl + `/db/info?db=${db}`;
-        const res = await axios.get(url);
+    static async fetchDbInfo(connection_id, db) {
+        const res = await this.api_call('get', '/db/info', { connection_id, db });
         return res.data;
     }
 

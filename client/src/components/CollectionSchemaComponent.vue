@@ -117,7 +117,7 @@ export default {
   methods: {
 
     async reload() {
-      this.fields = await MongoService.loadSchema(this.database, this.collection);
+      this.fields = await MongoService.loadSchema(this.connection, this.database, this.collection);
       if(!this.fields || !this.fields.length) {
         this.isSchemaEmpty = true;
       }
@@ -127,7 +127,7 @@ export default {
     },
 
     async rebuildSchema() {
-      await MongoService.rebuildSchema(this.database, this.collection);
+      await MongoService.rebuildSchema(this.connection, this.database, this.collection);
       await this.reload();
     },
 

@@ -62,52 +62,25 @@
 
     <div class="row">
       <div class="col">
-        Settings Database
-        <div class="small">process.env.SETTINGS_DB <br/> (see .env file)</div>
+        Default Connection
+        <div class="small">process.env.DEFAULT_DATABASE <br/> (see .env file)</div>
       </div>
       <div class="col p-1">
-        <b-form-input v-model="server.settings_database" readonly></b-form-input>
+        <b-form-input v-model="serverSettings.default_connection" readonly></b-form-input>
       </div>
     </div>
 
     <div class="row">
       <div class="col">
-        Settings Collection
-        <div class="small">process.env.SETTINGS_COLL <br/> (see .env file)</div>
+        Mongozap Database
+        <div class="small">process.env.MONGOZAP_DATABASE <br/> (see .env file)</div>
       </div>
       <div class="col p-1">
-        <b-form-input v-model="server.settings_collection" readonly></b-form-input>
-      </div>
-    </div>
-
-    <div class="row">
-      <div class="col">
-        Schema Database
-      </div>
-      <div class="col p-1">
-        <b-form-input v-model="server.schema_database"></b-form-input>
-      </div>
-    </div>
-
-    <div class="row">
-      <div class="col">
-        Schema Collection
-      </div>
-      <div class="col p-1">
-        <b-form-input v-model="server.schema_collection"></b-form-input>
+        <b-form-input v-model="serverSettings.mongozap_database" readonly></b-form-input>
       </div>
     </div>
 
   </div>
-
-  <div class="container mt-3">
-    <div class="row justify-content-end">
-      <div class="col-auto">
-        <b-button variant="primary" @click="saveServerSettings">Save</b-button>
-      </div>
-    </div>
-  </div>
-
 
 </div>
 
@@ -116,7 +89,6 @@
 <script>
 
 import ConfigService from '../ConfigService';
-import MongoService from '../MongoService';
 
 export default {
 
@@ -124,19 +96,14 @@ export default {
     return {
       collection_display: '',
       records_display_default: '',
-      server: {
-        settings_database: '',
-        settings_collection: '',
-        schema_database: '',
-        schema_collection: '',
-      }
+      serverSettings: {}
     }
   },
 
   async created () {
     this.collection_display = ConfigService.get('collection_display') || 'name';
     this.records_display_default = ConfigService.get('records_display_default') || 'table';
-    await this.loadServerSettings(true);
+    await this.loadServerSettings();
   },
   
   methods: {
@@ -146,15 +113,8 @@ export default {
       ConfigService.set('records_display_default', this.records_display_default);
     },
 
-    async loadServerSettings(reload) {
-      let settings = await ConfigService.getServerSettings(reload);
-      for(let key in this.server) {
-        this.server[key] = settings[key];
-      }
-    },
-
-    async saveServerSettings() {
-      await ConfigService.saveServerSettings(this.server);
+    async loadServerSettings() {
+      this.serverSettings = await ConfigService.getServerSettings();
     },
 
   },

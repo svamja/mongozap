@@ -3,56 +3,55 @@ const Mongo = require('./Mongo');
 const SettingsMgr = {
 
     settings: {
-      settings_database: process.env.SETTINGS_DB,
-      settings_collection: process.env.SETTINGS_COLL,
-      schema_database: 'mongozap',
-      schema_collection: 'fields',
+      default_connection: process.env.DEFAULT_CONNECTION,
+      mongozap_database: process.env.MONGOZAP_DATABASE,
+      connections: [],
     },
 
     loaded: false,
 
-    async loadSettings(connectionUrl, reload = false) {
-      if(!reload && this.loaded) {
-        return;
-      }
-      this.Settings = this.Settings || await Mongo.get(connectionUrl, process.env.SETTINGS_DB, process.env.SETTINGS_COLL);
-      let records = await this.Settings.find().toArray();
+    async init_model() {
+      this.SettingsModel = this.SettingsModel || await Mongo.get(this.settings.default_connection, this.settings.mongozap_database, 'settings');
+    },
+
+    async loadFromDatabase() {
+      await this.init_model();
+      let records = await this.SettingsModel.find().toArray();
       for(let record of records) {
         let key = record.key
         let value = record.value;
-        this.settings[key] = value;
+        if(key != 'default_connection' && key != 'mongozap_database') {
+          this.settings[key] = value;
+        }
       }
       this.loaded = true;
+      return this.settings;
     },
 
-    async get(connectionUrl, key) {
-        await this.loadSettings(connectionUrl);
-        return this.settings[key];
+    async read() {
+      await this.init_model();
+      if(!this.loaded) {
+        await this.loadFromDatabase();
+      }
+      return this.settings;
     },
 
-    async getAll(connectionUrl) {
-        await this.loadSettings(connectionUrl);
-        return this.settings;
-    },
-
-    async set(connectionUrl, key, value) {
-      this.Settings = this.Settings || await Mongo.get(process.env.SETTINGS_DB, process.env.SETTINGS_COLL);
-      this.Settings.updateOne(
-        { key }, { key, value }, { upsert: true }
-      );
-    },
-
-    async setAll(connectionUrl, settings) {
-      this.Settings = this.Settings || await Mongo.get(process.env.SETTINGS_DB, process.env.SETTINGS_COLL);
-      await this.Settings.deleteMany();
+    async write(settings) {
+      await this.init_model();
+      await this.SettingsModel.deleteMany();
       let records = [];
       for(let key in settings) {
         let value = settings[key];
         records.push({ key, value });
       }
-      await this.Settings.insertMany(records);
-      await this.loadSettings(true);
+      await this.SettingsModel.insertMany(records);
+      await this.loadFromDatabase();
     },
+
+    async get(key) {
+      await this.loadFromDatabase();
+      return this.settings[key];
+    }
 
 }
 

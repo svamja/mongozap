@@ -3,7 +3,7 @@ import MongoService from './MongoService';
 
 const ConfigService = {
 
-    server: {},
+    serverSettings: {},
 
     // Get Collections
     get(key) {
@@ -19,22 +19,36 @@ const ConfigService = {
         Vue.$storage.set(key, val);
     },
 
-    async getServerSettings(reload) {
-        await this.loadServerSettings(reload);
-        return this.server;
+    async getServerSettings() {
+      this.serverSettings = await MongoService.getServerSettings();
+      return this.serverSettings;
     },
 
-    async loadServerSettings(reload = false) {
-      if(!reload && this.server && Object.keys(this.server).length) {
-        return;
-      }
-      this.server = await MongoService.configGet();
+    async setServerSettings(settings) {
+        this.serverSettings = await MongoService.setServerSettings(settings);
     },
 
-    async saveServerSettings(settings) {
-        await MongoService.configSet(settings);
-        this.server = await MongoService.configGet();
+    async setConnections(connections) {
+        this.serverSettings.connections = connections;
+        this.serverSettings = await this.setServerSettings(this.serverSettings);
     },
+
+    async getConnections() {
+        this.serverSettings = await this.getServerSettings();
+        return this.serverSettings['connections'] || [];
+    },
+
+    async connection(id) {
+        if(!this.serverSettings.default_connection) {
+            await this.getServerSettings();
+        }
+        if(id == 0) {
+            return this.serverSettings.default_connection;
+        }
+        else {
+            return this.serverSettings.connections[id - 1].url;
+        }
+    }
 
 }
 

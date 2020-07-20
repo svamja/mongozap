@@ -11,29 +11,25 @@
     </div>
   </div>
 
-
-  <!-- No Connections  -->
-  <div v-if="isEmpty" class="container">
-    <div class="row">
-      <div class="col border p-5 text-center">
-        <div class="h4">
-          No Connections
-        </div>
+  <div class="container table-container">
+    <div class="row py-2 h4">
+      <div class="col">
         <div>
-          <a class="btn btn-primary" v-b-modal.add-connection-modal>
-            Add Connection
-          </a>
+          1. 
+          <router-link :to="'/db/0/list'">
+            Default
+          </router-link>
+        </div>
+        <div class="small text-muted ml-4">
+          {{ serverSettings.default_connection }}
         </div>
       </div>
     </div>
-  </div>
-
-  <div v-else class="container table-container">
     <div class="row py-2 h4" v-for="(connection, index) in connections" :key="connection.url">
       <div class="col">
         <div>
-          {{ index + 1 }}.  
-          <router-link :to="'/db/' + index + '/list'">
+          {{ index + 2 }}.  
+          <router-link :to="'/db/' + (index + 1) + '/list'">
             {{ connection.name }}
           </router-link>
         </div>
@@ -82,8 +78,8 @@ export default {
 
   data() {
     return {
+      serverSettings: {},
       connections: [],
-      isEmpty: false,
       name: '',
       url: '',
       deleteIndex: -1,
@@ -92,37 +88,30 @@ export default {
   },
 
   async created () {
-    this.connections = ConfigService.get('connections') || [];
-    if(!this.connections.length) {
-        this.name = 'Default (localhost)';
-        this.url = 'mongodb://localhost:27017/';
-        this.addConnection();
-    }
-    if(!this.connections || !this.connections.length) {
-        this.isEmpty = true;
-    }
+    this.connections = await ConfigService.getConnections() || [];
+    this.serverSettings = await ConfigService.getServerSettings();
   },
 
   methods: {
 
-    addConnection() {
+    async addConnection() {
       if(this.url) {
         this.connections.push({ name: this.name || this.url, url: this.url });
-        ConfigService.set('connections', this.connections);
+        await ConfigService.setConnections(this.connections);
         this.name = '';
         this.url = '';
       }
     },
 
-    deleteConfirmation: function(i) {
+    deleteConfirmation(i) {
       this.deleteIndex = i;
       this.showDeleteModal = true;
     },
 
-    deleteConnection: function() {
+    async deleteConnection() {
       if(this.deleteIndex > -1) {
         this.connections.splice(this.deleteIndex, 1)
-        ConfigService.set('connections', this.connections);
+        await ConfigService.setConnections(this.connections);
         this.deleteIndex = -1;
       }
     },

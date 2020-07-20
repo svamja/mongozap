@@ -80,7 +80,7 @@ export default {
   methods: {
 
     async fetchDbInfo() {
-      this.stats = await MongoService.fetchDbInfo(this.database);
+      this.stats = await MongoService.fetchDbInfo(this.connection, this.database);
       this.stats.dataSize = this.formatBytes(this.stats.dataSize);
     },
 

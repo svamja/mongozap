@@ -253,7 +253,7 @@ export default {
     
     async records_fn(ctx) {
       ctx.query = this.query;
-      let result = await MongoService.records(this.database, this.collection, ctx);
+      let result = await MongoService.records(this.connection, this.database, this.collection, ctx);
       let records = result.records;
       this.totalRows = result.count;
       this.isCollEmpty = !records.length;
@@ -276,12 +276,12 @@ export default {
     },
     
     async clearCollection() {
-      await MongoService.clear(this.database, this.collection);
+      await MongoService.clear(this.connection, this.database, this.collection);
       this.reload();
     },
     
     async dropCollection() {
-      await MongoService.drop(this.database, this.collection);
+      await MongoService.drop(this.connection, this.database, this.collection);
       this.$router.push(`/db/${this.connection}/${this.database}/index`);
     },
     
