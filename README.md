@@ -18,13 +18,14 @@ You can now access it on `http://localhost:3333`
 
 It uses .env file and environment variables for configuration. Below variables are used for configuration.
 
-| Variable      | Description           | Default   |
-| ----          | -----                 | ----      |
-| PORT          | Port to bind to       | 3333      |
-| SETTINGS_DB   | database used to save the server side settings    | 'mongozap' |
-| SETTINGS_COLL | collection used to save the server side settings  | 'settings' |
+| Variable      		| Description           				| Default   				|
+| ----          		| -----                 				| ----      				|
+| PORT          		| Port to bind to    				  	| 3333      				|
+| DEFAULT_CONNECTION  	| default connection to use    			| 'mongodb://127.0.0.1/' 	|
+| MONGOZAP_DATABASE		| name of mongozap database for schema  | 'mongozap' 				|
 
 
-Apart from above, the app uses `mongozap.fields` collection by default to save schema information.
-This can be updated from within the MongoZap app, under settings section.
+'mongozap' is a small database used to store schema and additional connections.
+this information is stored only in the default connection.
+
 
