@@ -20,9 +20,7 @@ const ApiController = {
         let info = await db.stats();
 
         // Get Schema Info
-        const schema_db = await SettingsMgr.get('mongozap_database');
-        const schema_coll = 'fields';
-        const SchemaModel = await Mongo.get(connection_url, schema_db, schema_coll);
+        const SchemaModel = await SchemaMgr.init();
         let pipeline = [
             { '$match' : { 'db': dbName } },
             { '$group' : { _id: "$coll" } }
@@ -75,7 +73,7 @@ const ApiController = {
 
         // Get Collection
         const Model = await Mongo.get(connection_url, db, coll);
-        let perPage = parseInt(req.query.perPage || 10);
+        let perPage = parseInt(req.query.perPage || req.body.perPage || 10);
 
         // Get Cursor
         const cursor = await Model.find(query).limit(perPage);
@@ -103,10 +101,10 @@ const ApiController = {
         }
 
         // Schema (Fields)
-        if(!ApiController.schema || ApiController.schema_coll != coll || ApiController.schema_db != db) {
+        if(!ApiController.last_schema || ApiController.last_schema_coll != coll || ApiController.last_schema_db != db) {
             await ApiController.loadSchema(connection_url, db, coll);
         }
-        let schema = ApiController.schema;
+        let schema = ApiController.last_schema;
 
         // Return Data
         res.json({ records, count, schema });
@@ -114,16 +112,14 @@ const ApiController = {
 
     async loadSchema(connection_url, db, coll) {
 
-        let schema_db = await SettingsMgr.get('default_database');
-        let schema_coll = 'fields';
+        const SchemaModel = await SchemaMgr.init();
 
-        if(!schema_db || !schema_coll) {
+        if(!SchemaModel) {
             return;
         }
 
         let query = { db, coll };
 
-        const SchemaModel = await Mongo.get(connection_url, schema_db, schema_coll);
         records = await SchemaModel.find(query).toArray();
 
         let fields = [];
@@ -135,10 +131,10 @@ const ApiController = {
                 fields.push(record.path);
             }
         }
-        this.schema = { fields };
-        this.schema_db = db;
-        this.schema_coll = coll;
-        return this.schema;
+        this.last_schema = { fields };
+        this.last_schema_db = db;
+        this.last_schema_coll = coll;
+        return this.last_schema;
     },
 
     async collection_clear(req, res) {
@@ -173,11 +169,13 @@ const ApiController = {
         const connection_url = req.query.connection_url || req.body.connection_url;
         const db = req.query.db;
         const coll = req.query.coll;
+        const rebuild = req.query.rebuild || req.body.rebuild;
 
         // Schema Db
-        const schema_db = await SettingsMgr.get('mongozap_database');
-        const schema_coll = 'fields';
-        const SchemaModel = await Mongo.get(connection_url, schema_db, schema_coll);
+        const SchemaModel = await SchemaMgr.init();
+        if(rebuild) {
+            await SchemaMgr.rebuild(connection_url, db, coll);
+        }
 
         // Query
         let query = { db, coll };
@@ -192,9 +190,7 @@ const ApiController = {
         const coll = req.body.coll;
         const rebuild = req.body.rebuild;
 
-        const schema_db = await SettingsMgr.get('mongozap_database');
-        const schema_coll = 'fields';
-        await SchemaMgr.init(connection_url, schema_db, schema_coll);
+        const SchemaModel = await SchemaMgr.init();
 
         if(rebuild) {
             await SchemaMgr.rebuild(connection_url, db, coll);

@@ -1,14 +1,26 @@
 const Mongo = require('./Mongo');
 const _ = require('lodash');
 const mongodbSchema = require('mongodb-schema');
+const SettingsMgr = require('./SettingsMgr');
 
 const SchemaMgr = {
 
-    async init(connection_url, schema_db, schema_coll) {
+    SchemaModel: null,
+
+    async init() {
+        if(this.SchemaModel) {
+            return this.SchemaModel;
+        }
+        const connection_url = await SettingsMgr.get('default_connection');
+        const schema_db = await SettingsMgr.get('mongozap_database');
+        const schema_coll = 'fields';
         this.SchemaModel = await Mongo.get(connection_url, schema_db, schema_coll);
+        return this.SchemaModel;
     },
 
     async rebuild(connection_url, db, coll) {
+
+        await this.init();
 
         const Model = await Mongo.get(connection_url, db, coll);
         const sort = { _id: -1 };
@@ -36,7 +48,7 @@ const SchemaMgr = {
         let fields = this.schema_fields(schema.fields, db, coll);
 
         // Insert Fields
-        let r = await this.SchemaModel.insertMany(fields);
+        await this.SchemaModel.insertMany(fields);
 
     },
 
