@@ -33,7 +33,7 @@
   <div class="container">
     <div class="row">
       <div class="col">
-        <div class="mt-3 mb-1 small">Made with ❤️ in India</div>
+        <div class="mt-3 mb-1 small">Made with <span style="color: #e25555;">&#9829;</span> in India</div>
       </div>
     </div>
   </div>

@@ -64,7 +64,7 @@ const ApiController = {
         }
 
         // Sort
-        let sort;
+        let sort = { '_id' : -1 };
         if(req.body && req.body.sort) {
             if(_.isPlainObject(req.body.sort)) {
                 sort = req.body.sort;
@@ -124,17 +124,31 @@ const ApiController = {
 
         let fields = [];
         for(let record of records) {
-            if(record.depth == 1 && record.type != 'Array' && record.type != 'Document') {
+            if(record.depth == 1) {
                 fields.push(record.name);
             }
-            if(record.depth == 2) {
-                fields.push(record.path);
-            }
+            // if(record.depth == 1 && record.type != 'Array' && record.type != 'Document') {
+            //     fields.push(record.name);
+            // }
+            // if(record.depth == 2) {
+            //     fields.push(record.path);
+            // }
         }
         this.last_schema = { fields };
         this.last_schema_db = db;
         this.last_schema_coll = coll;
         return this.last_schema;
+    },
+
+    async collection_delete(req, res) {
+        // Get Collection
+        const connection_url = req.query.connection_url || req.body.connection_url;
+        const db = req.query.db || req.body.db;
+        const coll = req.query.coll || req.body.coll;
+        const query = req.query.query || req.body.query;
+        const Model = await Mongo.get(connection_url, db, coll);
+        let result = await Model.deleteMany(query);
+        res.json({ status: 'success', count: result.deletedCount });
     },
 
     async collection_clear(req, res) {

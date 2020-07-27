@@ -110,6 +110,11 @@ class MongoService {
         return res.data;
     }
 
+    static async deleteRecords(connection_id, db, coll, query) {
+        const res = await this.api_call('post', '/collection/delete', { connection_id, db, coll, query });
+        return res.data;
+    }
+
 }
 
 export default MongoService;

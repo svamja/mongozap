@@ -130,9 +130,17 @@
           variant="primary"
           size="sm"
           class="float-right"
-          @click="saveSearch()"
+          @click="applySearch()"
         >
-          Save
+          Search
+        </b-button>
+        <b-button
+          variant="danger"
+          size="sm"
+          class="mx-2 float-right"
+          @click="deleteRecords()"
+        >
+          Delete
         </b-button>
       </div>
     </template>
@@ -297,7 +305,7 @@ export default {
       this.showShortcutsModal = true;
     },
     
-    saveSearch() {
+    applySearch() {
       this.showSearchModal = false;
       let query;
       if(this.query_text && this.query_text.trim()) {
@@ -312,6 +320,33 @@ export default {
         query = {};
       }
       this.query = query;
+      this.$root.$emit('bv::refresh::table', 'records_table');
+    },
+
+    async deleteRecords() {
+      this.showSearchModal = false;
+      let query;
+      if(this.query_text && this.query_text.trim()) {
+        try {
+          query = JSON.parse(this.query_text);
+        }
+        catch(err) {
+          // handle later
+        }
+      }
+      if(!query) {
+        query = {};
+      }
+      let result = await MongoService.deleteRecords(this.connection, this.database, this.collection, query);
+      console.log('delete result', result);
+      this.$bvToast.toast(`${result.count} records deleted`, {
+        title: 'Success',
+        variant: 'success',
+        solid: true,
+        autoHideDelay: 5000,
+        appendToast: true
+      });
+      this.query = null;
       this.$root.$emit('bv::refresh::table', 'records_table');
     },
 

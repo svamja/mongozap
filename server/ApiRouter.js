@@ -14,6 +14,7 @@ router.post('/collection/index', ApiController.collection_index);
 // Clear & Drop
 router.post('/collection/clear', ApiController.collection_clear);
 router.post('/collection/drop', ApiController.collection_drop);
+router.post('/collection/delete', ApiController.collection_delete);
 
 // Manage Schema
 router.get('/collection/schema', ApiController.schema_get);
