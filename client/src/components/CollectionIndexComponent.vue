@@ -80,6 +80,7 @@
 
       <template v-slot:row-details="row">
         <pre v-highlightjs><code class="json">{{ JSON.stringify(row.item, null, 2) }}</code></pre>
+        <div class="small"><a href="#" @click.stop.prevent="confirmDelete(row.item)">Delete</a></div>
       </template>
 
   </b-table>
@@ -88,7 +89,8 @@
   <div v-if="isCollEmpty">
     <div class="row">
       <div class="col border p-5 text-center h4">
-        Empty Collection
+        <span v-if="query_text"> No Records Found </span>
+        <span v-else> Empty Collection </span>
       </div>
     </div>
   </div>
@@ -188,6 +190,18 @@
     <p>Proceed?</p>
   </b-modal>
 
+  <!-- Delete Confirmation Modal -->
+  <b-modal id="delete-confirmation-modal" title="Confirmation"
+    v-model="showDeleteModal"
+    ok-variant="danger" ok-title="Delete"
+    @ok="deleteRecord()">
+    <p>
+      This will delete below record. 
+    </p>
+    <p>Proceed?</p>
+    <pre v-highlightjs><code class="json">{{ JSON.stringify(deleteItem, null, 2) }}</code></pre>
+  </b-modal>
+
 </div>
 
 </template>
@@ -212,10 +226,12 @@ export default {
       showInsertModal: false,
       showSearchModal: false,
       showShortcutsModal: false,
+      showDeleteModal: false,
       isCollEmpty: false,
       displayCollection: '',
       search_text: '',
       query_text: '',
+      deleteItem: null,
       // records: [],
       fields: null,
       perPage: 20,
@@ -287,12 +303,23 @@ export default {
       await MongoService.clear(this.connection, this.database, this.collection);
       this.reload();
     },
-    
+
     async dropCollection() {
       await MongoService.drop(this.connection, this.database, this.collection);
       this.$router.push(`/db/${this.connection}/${this.database}/index`);
     },
     
+    confirmDelete(item) {
+      this.deleteItem = item;
+      this.showDeleteModal = true;
+    },
+
+    async deleteRecord() {
+      let query = { _id: { "$oid" : this.deleteItem._id } };
+      await MongoService.deleteRecords(this.connection, this.database, this.collection, query);
+      this.reload();
+    },
+
     openInsert() {
       this.showInsertModal = true;
     },

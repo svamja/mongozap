@@ -141,12 +141,15 @@ const ApiController = {
     },
 
     async collection_delete(req, res) {
+        const { EJSON } = require('bson');
+
         // Get Collection
         const connection_url = req.query.connection_url || req.body.connection_url;
         const db = req.query.db || req.body.db;
         const coll = req.query.coll || req.body.coll;
-        const query = req.query.query || req.body.query;
+        let query = req.query.query || req.body.query;
         const Model = await Mongo.get(connection_url, db, coll);
+        query = EJSON.deserialize(query);
         let result = await Model.deleteMany(query);
         res.json({ status: 'success', count: result.deletedCount });
     },

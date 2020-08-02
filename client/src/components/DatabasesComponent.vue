@@ -77,7 +77,7 @@ export default {
               }
             }
           }
-          this.$router.push('/database/' + database.name + '/collections');
+          this.$router.push('/db/' + this.connection + '/' + database.name + '/index');
         }
       },
     }

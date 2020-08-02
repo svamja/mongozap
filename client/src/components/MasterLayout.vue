@@ -12,7 +12,7 @@
     <b-collapse id="nav-collapse" is-nav>
       <b-navbar-nav>
         <b-nav-item href="#"><router-link to="/">Connections</router-link></b-nav-item>
-        <b-nav-item href="#"><router-link to="/db/1/list">Databases</router-link></b-nav-item>
+        <b-nav-item href="#"><router-link to="/db/0/list">Databases</router-link></b-nav-item>
         <b-nav-item href="#"><router-link to="/settings">Settings</router-link></b-nav-item>
       </b-navbar-nav>
 

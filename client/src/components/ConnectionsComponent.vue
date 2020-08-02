@@ -8,13 +8,20 @@
         Connections
         <span class="fa fa-plus ml-3 text-primary" v-b-modal.add-connection-modal></span>
       </div>
+      <div class="col text-right">
+        <a class="ml-2" v-shortkey.once="['shift', '?']"
+          @shortkey="openShortcuts()" href="#" @click.stop.prevent="openShortcuts()"
+          v-b-tooltip.hover title="Keyboard Shortcuts (?)">
+          <span class="fa fa-question-circle"></span>
+        </a>
+      </div>
     </div>
   </div>
 
   <div class="container table-container">
     <div class="row py-2 h4">
       <div class="col">
-        <div>
+        <div v-shortkey="['1']" @shortkey="selectDb(0)">
           1. 
           <router-link :to="'/db/0/list'">
             Default
@@ -27,7 +34,7 @@
     </div>
     <div class="row py-2 h4" v-for="(connection, index) in connections" :key="connection.url">
       <div class="col">
-        <div>
+        <div v-shortkey="[ index + 2 ]" @shortkey="selectDb(index + 1)">
           {{ index + 2 }}.  
           <router-link :to="'/db/' + (index + 1) + '/list'">
             {{ connection.name }}
@@ -63,7 +70,25 @@
     <p>Proceed?</p>
   </b-modal>
 
-
+  <!-- Keyboard Shortcuts Modal -->
+  <b-modal id="shortcuts-modal" title="Keyboard Shortcuts" v-model="showShortcutsModal" ok-only>
+    <table class="table table-bordered">
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td>Connection 1</td>
+        </tr>
+        <tr>
+          <td>2</td>
+          <td>Connection 2</td>
+        </tr>
+        <tr>
+          <td>.</td>
+          <td>..</td>
+        </tr>
+      </tbody>
+    </table>
+  </b-modal>
 
 </div>
 
@@ -84,6 +109,7 @@ export default {
       url: '',
       deleteIndex: -1,
       showDeleteModal: false,
+      showShortcutsModal: false,
     }
   },
 
@@ -116,6 +142,14 @@ export default {
       }
     },
 
+    selectDb(index) {
+        this.$router.push('/db/' + index + '/list');
+    },
+
+    openShortcuts() {
+      this.showShortcutsModal = true;
+    },
+    
   },
 
 }
