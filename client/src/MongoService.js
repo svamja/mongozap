@@ -21,8 +21,11 @@ class MongoService {
             let data = { params };
             res = await axios.get(url, data);
         }
-        else {
+        else if(method == 'post') {
             res = await axios.post(url, params);
+        }
+        else if(method == 'delete') {
+            res = await axios.delete(url, { data: params });
         }
         return res;
     }
@@ -92,6 +95,16 @@ class MongoService {
 
     static async bulkOps(connection_id, db, coll, ops) {
         const res = await this.api_call('post', '/collection/bulk', { connection_id, db, coll, ops });
+        return res.data;
+    }
+
+    static async getIndexes(connection_id, db, coll) {
+        const res = await this.api_call('get', '/collection/indexes', { connection_id, db, coll });
+        return res.data;
+    }
+
+    static async deleteIndex(connection_id, db, coll, index_name) {
+        const res = await this.api_call('delete', '/collection/indexes', { connection_id, db, coll, index_name });
         return res.data;
     }
 

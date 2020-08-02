@@ -19,6 +19,11 @@ router.post('/collection/clear', ApiController.collection_clear);
 router.post('/collection/drop', ApiController.collection_drop);
 router.post('/collection/delete', ApiController.collection_delete);
 
+// Manage Indexes
+router.get('/collection/indexes', ApiController.indexes_get);
+// router.post('/collection/indexes', ApiController.indexes_post);
+router.delete('/collection/indexes', ApiController.indexes_delete);
+
 // Manage Schema
 router.get('/collection/schema', ApiController.schema_get);
 router.post('/collection/schema', ApiController.schema_post);

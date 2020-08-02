@@ -19,9 +19,9 @@
     <!-- Toolbar -->
     <div class="col-auto my-auto pl-0 ml-auto">
 
-      <a v-shortkey.once="['i']" 
+      <a v-shortkey.once="['shift', '+']" 
         @shortkey="openInsert()" href="#" @click.stop.prevent="openInsert()"
-        v-b-tooltip.hover title="Insert (i)">
+        v-b-tooltip.hover title="Insert (+)">
         <span class="fa fa-plus"></span>
       </a>
       <a class="ml-2" v-shortkey.once="['/']" 
@@ -183,6 +183,10 @@
         <tr>
           <td>/</td>
           <td>Search</td>
+        </tr>
+        <tr>
+          <td>+</td>
+          <td>Insert</td>
         </tr>
         <tr>
           <td>r</td>

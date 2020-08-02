@@ -10,6 +10,9 @@
   <span class="text-muted">/</span>
   <b-dropdown id="dropdown-dropright" dropright :text="action" variant="muted" class="text-muted">
     <b-dropdown-item href="#">Home</b-dropdown-item>
+    <b-dropdown-item href="#" :to="`/coll/${connection}/${database}/${collection}/indexes`">
+        Indexes
+    </b-dropdown-item>
     <b-dropdown-item href="#" :to="`/coll/${connection}/${database}/${collection}/index`">
         Browse
     </b-dropdown-item>

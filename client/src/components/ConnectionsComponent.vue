@@ -6,7 +6,11 @@
     <div class="row my-3">
       <div class="col h4">
         Connections
-        <span class="fa fa-plus ml-3 text-primary" v-b-modal.add-connection-modal></span>
+        <span class="fa fa-plus ml-3 text-primary"
+          v-shortkey="[ 'shift', '+' ]"
+          @shortkey="showAddModal = true"
+          v-b-modal.add-connection-modal>
+        </span>
       </div>
       <div class="col text-right">
         <a class="ml-2" v-shortkey.once="['shift', '?']"
@@ -49,7 +53,7 @@
   </div>
 
   <!-- Add Connection Modal -->
-  <b-modal id="add-connection-modal" title="Add Connection" @ok="addConnection()">
+  <b-modal id="add-connection-modal" title="Add Connection" v-model="showAddModal"  @ok="addConnection()">
     <div>
       <b-form-input v-model="name" placeholder="Name" autofocus></b-form-input>
     </div>
@@ -74,6 +78,10 @@
   <b-modal id="shortcuts-modal" title="Keyboard Shortcuts" v-model="showShortcutsModal" ok-only>
     <table class="table table-bordered">
       <tbody>
+        <tr>
+          <td>+</td>
+          <td>Add Connection</td>
+        </tr>
         <tr>
           <td>1</td>
           <td>Connection 1</td>
@@ -109,6 +117,7 @@ export default {
       url: '',
       deleteIndex: -1,
       showDeleteModal: false,
+      showAddModal: false,
       showShortcutsModal: false,
     }
   },

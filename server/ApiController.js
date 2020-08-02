@@ -251,6 +251,32 @@ const ApiController = {
         res.json({ status: 'success' });
     },
 
+
+    async indexes_get(req, res) {
+
+        const connection_url = req.query.connection_url || req.body.connection_url;
+        const db = req.query.db || req.body.db;
+        const coll = req.query.coll || req.body.coll;
+
+        // Get Indexes
+        const Model = await Mongo.get(connection_url, db, coll);
+        const indexes = await Model.indexes();
+        res.json(indexes);
+    },
+
+    async indexes_delete(req, res) {
+
+        const connection_url = req.query.connection_url || req.body.connection_url;
+        const db = req.query.db || req.body.db;
+        const coll = req.query.coll || req.body.coll;
+        const index_name = req.query.index_name || req.body.index_name;
+
+        // Get Indexes
+        const Model = await Mongo.get(connection_url, db, coll);
+        const result = await Model.dropIndex(index_name);
+        res.json({ status: 'success' });
+    },
+
     async settings_get(req, res) {
         let settings = await SettingsMgr.read();
         res.json(settings);
