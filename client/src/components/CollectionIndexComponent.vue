@@ -97,14 +97,29 @@
 
   <!-- Insert Modal -->
   <b-modal id="insert-modal" title="Insert Document" v-model="showInsertModal">
-    <b-textarea v-model="query_text" rows="8" autofocus></b-textarea>
+    <div>
+      <b-textarea
+        v-model="insertItem" rows="8"
+        :class="{ 'is-invalid': insertError  }"
+        autofocus></b-textarea>
+    </div>
+    <div class="row">
+      <div class="col text-danger" v-if="insertError">
+        Invalid JSON.
+      </div>
+      <div class="col text-right">
+        <a class="small my-2" href="https://docs.mongodb.com/manual/reference/mongodb-extended-json/#example" target="_blank">
+          EJSON Format <i class="fa fa-external-link-alt"></i>
+        </a>
+      </div>
+    </div>
     <template v-slot:modal-footer>
       <div class="w-100">
         <b-button
           variant="primary"
           size="sm"
           class="float-right"
-          @click="saveSearch()"
+          @click="insertDoc()"
         >
           Save
         </b-button>
@@ -116,9 +131,22 @@
   <b-modal id="search-modal" title="Search" v-model="showSearchModal">
     <b-tabs content-class="mt-3">
       <b-tab title="Query" active>
-        <p>
-          <b-textarea v-model="query_text" rows="8" autofocus></b-textarea>
-        </p>
+        <div>
+          <b-textarea
+            v-model="query_text" rows="8"
+            :class="{ 'is-invalid': searchError  }"
+            autofocus></b-textarea>
+        </div>
+        <div class="row">
+          <div class="col text-danger" v-if="insertError">
+            Invalid JSON.
+          </div>
+          <div class="col text-right">
+            <a class="small my-2" href="https://docs.mongodb.com/manual/reference/mongodb-extended-json/#example" target="_blank">
+              EJSON Format <i class="fa fa-external-link-alt"></i>
+            </a>
+          </div>
+        </div>
       </b-tab>
       <!-- 
       <b-tab title="Search">
@@ -232,6 +260,9 @@ export default {
       search_text: '',
       query_text: '',
       deleteItem: null,
+      insertItem: null,
+      insertError: false,
+      searchError: false,
       // records: [],
       fields: null,
       perPage: 20,
@@ -323,6 +354,21 @@ export default {
     openInsert() {
       this.showInsertModal = true;
     },
+
+    async insertDoc() {
+      let insertItem;
+      this.insertError = false;
+      try {
+        insertItem = JSON.parse(this.insertItem);
+      }
+      catch(err) {
+        this.insertError = true;
+        return;
+      }
+      await MongoService.insertDoc(this.connection, this.database, this.collection, insertItem);
+      this.showInsertModal = false;
+      this.reload();
+    },
     
     openSearch() {
       this.showSearchModal = true;
@@ -333,19 +379,21 @@ export default {
     },
     
     applySearch() {
-      this.showSearchModal = false;
       let query;
+      this.searchError = false;
       if(this.query_text && this.query_text.trim()) {
         try {
           query = JSON.parse(this.query_text);
         }
         catch(err) {
-          // handle later
+          this.searchError = true;
+          return;
         }
       }
       if(!query) {
         query = {};
       }
+      this.showSearchModal = false;
       this.query = query;
       this.$root.$emit('bv::refresh::table', 'records_table');
     },

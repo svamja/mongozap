@@ -39,6 +39,9 @@ const ApiController = {
     },
 
     collection_index: async function(req, res) {
+
+        const { EJSON } = require('bson');
+
         // Get Params
         const connection_url = req.query.connection_url || req.body.connection_url;
         const db = req.query.db || req.body.db;
@@ -61,6 +64,9 @@ const ApiController = {
         }
         if(!input_query) {
             query = {};
+        }
+        else {
+            query = EJSON.deserialize(query);
         }
 
         // Sort
@@ -138,6 +144,24 @@ const ApiController = {
         this.last_schema_db = db;
         this.last_schema_coll = coll;
         return this.last_schema;
+    },
+
+    async collection_insert(req, res) {
+        const { EJSON } = require('bson');
+
+        // Get Collection
+        const connection_url = req.query.connection_url || req.body.connection_url;
+        const db = req.query.db || req.body.db;
+        const coll = req.query.coll || req.body.coll;
+        let docs = req.query.doc || req.body.docs;
+        let doc = req.query.doc || req.body.doc;
+        if(doc && !docs) {
+            docs = [ doc ];
+        }
+        const Model = await Mongo.get(connection_url, db, coll);
+        docs = EJSON.deserialize(docs);
+        let result = await Model.insertMany(docs);
+        res.json({ status: 'success', count: result.insertedCount });
     },
 
     async collection_delete(req, res) {
