@@ -1,4 +1,8 @@
-require('dotenv').config();
+const DotEnv = require('dotenv');
+const path = require('path');
+
+DotEnv.config();
+DotEnv.config({ path: path.resolve(__dirname, '..', '.env.default') });
 
 const express = require('express');
 const cors = require('cors');
