@@ -24,6 +24,7 @@ import DatabaseIndexComponent from './components/DatabaseIndexComponent';
 import CollectionIndexComponent from './components/CollectionIndexComponent';
 import CollectionSchemaComponent from './components/CollectionSchemaComponent';
 import CollectionIndexesComponent from './components/CollectionIndexesComponent';
+import CollectionFilterComponent from './components/CollectionFilterComponent';
 import SettingsComponent from './components/SettingsComponent';
 
 Vue.use(BootstrapVue);
@@ -39,6 +40,7 @@ const routes = [
   { path: '/db/:connection/:database/index', component: DatabaseIndexComponent },
   { path: '/coll/:connection/:database/:collection/index', component: CollectionIndexComponent },
   { path: '/coll/:connection/:database/:collection/schema', component: CollectionSchemaComponent },
+  { path: '/coll/:connection/:database/:collection/filter', component: CollectionFilterComponent },
   { path: '/coll/:connection/:database/:collection/indexes', component: CollectionIndexesComponent },
   { path: '/settings', component: SettingsComponent }
 ];

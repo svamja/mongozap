@@ -16,7 +16,7 @@
     <b-dropdown-item href="#" :to="`/coll/${connection}/${database}/${collection}/index`">
         Browse
     </b-dropdown-item>
-    <b-dropdown-item href="#" v-b-modal.search-modal>Search..</b-dropdown-item>
+    <b-dropdown-item href="#" :to="`/coll/${connection}/${database}/${collection}/filter`">Filter</b-dropdown-item>
     <b-dropdown-item href="#" :to="`/coll/${connection}/${database}/${collection}/schema`">
         Schema
     </b-dropdown-item>

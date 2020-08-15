@@ -165,9 +165,17 @@
           Search
         </b-button>
         <b-button
+          variant="secondary"
+          size="sm"
+          class="mr-2 float-right"
+          @click="resetSearch()"
+        >
+          Reset
+        </b-button>
+        <b-button
           variant="danger"
           size="sm"
-          class="mx-2 float-right"
+          class="mr-2 float-right"
           @click="deleteRecords()"
         >
           Delete
@@ -288,6 +296,14 @@ export default {
     else {
       this.displayCollection = _.upperFirst(_.camelCase(this.collection));
     }
+    let key = this.collection + ':query';
+    this.query = ConfigService.get(key);
+    if(this.query) {
+      this.query_text = JSON.stringify(this.query, null, 4);
+    }
+    else {
+      this.query = {};
+    }
   },
 
   watch: {
@@ -400,6 +416,14 @@ export default {
       this.showSearchModal = false;
       this.query = query;
       this.$root.$emit('bv::refresh::table', 'records_table');
+    },
+
+    resetSearch() {
+      this.query_text = "";
+      this.query = {};
+      this.$root.$emit('bv::refresh::table', 'records_table');
+      this.searchError = false;
+      this.showSearchModal = false;
     },
 
     async deleteRecords() {

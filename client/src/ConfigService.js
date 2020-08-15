@@ -15,8 +15,8 @@ const ConfigService = {
         return result;
     },
 
-    set(key, val) {
-        Vue.$storage.set(key, val);
+    set(key, val, options = {}) {
+        Vue.$storage.set(key, val, options);
     },
 
     async getServerSettings() {
