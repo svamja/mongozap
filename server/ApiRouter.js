@@ -26,7 +26,6 @@ router.delete('/collection/indexes', ApiController.indexes_delete);
 
 // Manage Schema
 router.get('/collection/schema', ApiController.schema_get);
-router.post('/collection/schema', ApiController.schema_post);
 
 // Bulk Operations (Update, Replace, etc)
 router.post('/collection/bulk', ApiController.bulk);

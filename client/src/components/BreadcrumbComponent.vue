@@ -11,14 +11,19 @@
   <b-dropdown id="dropdown-dropright" dropright :text="action" variant="muted" class="text-muted">
     <b-dropdown-item href="#">Home</b-dropdown-item>
     <b-dropdown-item href="#" :to="`/coll/${connection}/${database}/${collection}/indexes`">
-        Indexes
+      Indexes
     </b-dropdown-item>
     <b-dropdown-item href="#" :to="`/coll/${connection}/${database}/${collection}/index`">
-        Browse
+      Browse
     </b-dropdown-item>
-    <b-dropdown-item href="#" :to="`/coll/${connection}/${database}/${collection}/filter`">Filter</b-dropdown-item>
     <b-dropdown-item href="#" :to="`/coll/${connection}/${database}/${collection}/schema`">
-        Schema
+      Schema
+    </b-dropdown-item>
+    <b-dropdown-item href="#" :to="`/coll/${connection}/${database}/${collection}/filter`">
+      Filter
+    </b-dropdown-item>
+    <b-dropdown-item href="#" :to="`/coll/${connection}/${database}/${collection}/fields`">
+      Fields
     </b-dropdown-item>
     <b-dropdown-item href="#" v-b-modal.clear-confirmation-modal variant="danger">Clear</b-dropdown-item>
     <b-dropdown-item href="#" v-b-modal.drop-confirmation-modal variant="danger">Drop</b-dropdown-item>

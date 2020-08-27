@@ -304,6 +304,8 @@ export default {
     else {
       this.query = {};
     }
+    key = this.collection + ':fields';
+    this.fields = ConfigService.get(key);
   },
 
   watch: {
@@ -332,7 +334,7 @@ export default {
       let records = result.records;
       this.totalRows = result.count;
       this.isCollEmpty = !records.length;
-      if(result.schema && result.schema.fields) {
+      if(result.schema && result.schema.fields && !this.fields) {
         this.fields = this.map_fields(result.schema.fields);
       }
       return records;

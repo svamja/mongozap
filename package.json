@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "node server/index.js",
-    "dev": "nodemon server/index.js"
+    "dev": "nodemon server/index.js",
+    "client": "cd client && npm run serve"
   },
   "author": "Sanjay Vamja",
   "license": "MIT",
@@ -16,7 +17,8 @@
     "express": "^4.17.1",
     "lodash": "^4.17.19",
     "mongodb": "^3.5.9",
-    "mongodb-schema": "^8.2.5"
+    "mongodb-schema": "^8.2.5",
+    "vuedraggable": "^2.24.0"
   },
   "devDependencies": {
     "nodemon": "^2.0.4"

@@ -110,6 +110,7 @@ const ApiController = {
         if(!ApiController.last_schema || ApiController.last_schema_coll != coll || ApiController.last_schema_db != db) {
             await ApiController.loadSchema(connection_url, db, coll);
         }
+
         let schema = ApiController.last_schema;
 
         // Return Data
@@ -133,12 +134,6 @@ const ApiController = {
             if(record.depth == 1) {
                 fields.push(record.name);
             }
-            // if(record.depth == 1 && record.type != 'Array' && record.type != 'Document') {
-            //     fields.push(record.name);
-            // }
-            // if(record.depth == 2) {
-            //     fields.push(record.path);
-            // }
         }
         this.last_schema = { fields };
         this.last_schema_db = db;
@@ -216,29 +211,15 @@ const ApiController = {
         const SchemaModel = await SchemaMgr.init();
         if(rebuild) {
             await SchemaMgr.rebuild(connection_url, db, coll);
+            ApiController.last_schema = null;
+            ApiController.last_schema_db = null;
+            ApiController.last_schema_coll = null;
         }
 
         // Query
         let query = { db, coll };
         result = await SchemaModel.find(query).toArray();
         res.json(result);
-    },
-
-    async schema_post(req, res) {
-        // Get Collection
-        const connection_url = req.query.connection_url || req.body.connection_url;
-        const db = req.body.db;
-        const coll = req.body.coll;
-        const rebuild = req.body.rebuild;
-
-        const SchemaModel = await SchemaMgr.init();
-
-        if(rebuild) {
-            await SchemaMgr.rebuild(connection_url, db, coll);
-        }
-
-        res.json({ status: "success" });
-
     },
 
     async bulk(req, res) {
