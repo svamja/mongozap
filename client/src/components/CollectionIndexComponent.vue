@@ -251,6 +251,7 @@
 import MongoService from '../MongoService';
 import ConfigService from '../ConfigService';
 import _ from 'lodash';
+import moment from 'moment';
 import BreadcrumbComponent from './BreadcrumbComponent';
 
 
@@ -338,6 +339,16 @@ export default {
         this.fields = this.map_fields(result.schema.fields);
       }
       return records;
+    },
+
+    date_time_formatter(value) {
+      let pretty_date = moment(value).format('MMM DD, YYYY HH:mm:ss');
+      return pretty_date;
+    },
+
+    unix_date_time_formatter(value) {
+      let pretty_date = moment.unix(value).format('MMM DD, YYYY HH:mm:ss');
+      return pretty_date;
     },
 
     map_fields(schema_fields) {

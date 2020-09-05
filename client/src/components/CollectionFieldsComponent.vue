@@ -52,9 +52,10 @@
     <div class="container">
 
       <div class="row font-italic">
-        <div class="col-6">Field</div>
-        <div class="col-1"></div>
-        <div class="col-4">Value</div>
+        <div class="col-3">Field</div>
+        <div class="col-3">Label</div>
+        <div class="col-3">Formatter</div>
+        <div class="col-3"></div>
 
       </div>
 
@@ -62,15 +63,25 @@
   
         <div class="row">
 
-          <div class="col-5">
+          <div class="col-3">
             <b-form-select
-              v-model="editItem.path"
-              placeholder="Field"
+              v-model="editItem.key"
               autofocus
               :options="field_options"></b-form-select>
           </div>
 
-          <div class="col-1">
+          <div class="col-3">
+            <b-form-input
+              v-model="editItem.label"></b-form-input>
+          </div>
+
+          <div class="col-3">
+            <b-form-select
+              v-model="editItem.formatter"
+              :options="formatter_options"></b-form-select>
+          </div>
+
+           <div class="col-1">
             <button class="btn btn-light" @click.prevent="addItem">Add</button>
           </div>
 
@@ -83,7 +94,9 @@
 
       <draggable v-model="items" @start="drag=true" @end="drag=false">
         <div class="row py-1" v-for="(item, i) of items" :key="item">
-          <div class="col-5"> {{ item }} </div>
+          <div class="col-3"> {{ item.key }} </div>
+          <div class="col-3"> {{ item.label }} </div>
+          <div class="col-3"> {{ item.formatter }} </div>
           <div class="col-1">
             <a href="#" class="text-danger" @click.stop.prevent="deleteItem(i)">
               <span class="fa fa-times"></span>
@@ -156,6 +169,7 @@ export default {
       },
       fields: [],
       field_options: [],
+      formatter_options: [],
       items: [],
     }
   },
@@ -171,6 +185,10 @@ export default {
     else {
       this.displayCollection = _.upperFirst(_.camelCase(this.collection));
     }
+    this.formatter_options = [
+      { value: "unix_date_time_formatter", text: "Date Time (Unix Timestamp)" },
+      { value: "date_time_formatter", text: "Date Time (Milliseconds)" },
+    ];
     await this.reload();
     this.items = ConfigService.get(this.collection + ':fields') || [];
   },
@@ -196,13 +214,17 @@ export default {
     },
 
     async addItem() {
-      let { path } = this.editItem;
-      if(!path) {
+      let { key, label, formatter } = this.editItem;
+      if(!key) {
         return;
       }
-      // let item = { path };
-      this.items.push(path);
-      this.editItem.path = null;
+      let sortable = false;
+      if(key == '_id') {
+        sortable = true;
+      }
+      let item = { key, label, formatter, sortable };
+      this.items.push(item);
+      this.editItem.key = null;
     },
 
     async deleteItem(i) {
