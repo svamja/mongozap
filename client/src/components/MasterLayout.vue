@@ -19,6 +19,9 @@
       <!-- Right aligned nav items -->
       <b-navbar-nav class="ml-auto">
         <b-nav-item href="https://github.com/svamja/mongozap" target="_blank">
+          {{ username }}
+        </b-nav-item>
+        <b-nav-item href="https://github.com/svamja/mongozap" target="_blank">
           <img alt="Vue logo" src="../assets/github-logo.png" style="height: 1.4em" />
         </b-nav-item>
       </b-navbar-nav>
@@ -50,11 +53,16 @@ export default {
       connection: '',
       database: '',
       collection: '',
+      username: ''
     }
   },
   async created () {
     this.connection = this.$route.params.connection;
     this.database = this.$route.params.database;
+    let authUser = this.$storage.get('authUser');
+    if(authUser && authUser.username) {
+      this.username = authUser.username;
+    }
   }
 }
 

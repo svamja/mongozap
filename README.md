@@ -1,6 +1,6 @@
 # MongoZap
 
-A Faster MongoDB Client (First Release on 15th August 2020)
+A Faster MongoDB Client
 
 ## Installation
 

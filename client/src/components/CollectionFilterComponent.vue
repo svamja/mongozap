@@ -76,6 +76,7 @@
               <option value="$ne">!=</option>
               <option value="$gt">&gt;</option>
               <option value="$lt">&lt;</option>
+              <option value="$regex">regex(i)</option>
               <option value="null">null</option>
               <option value="not null">not null</option>
             </select>
@@ -112,9 +113,14 @@
   </div>
 
   <div class="row my-3" v-if="items.length">
-    <div class="col">
+    <div class="col-2">
       <button class="btn btn-primary" @click="applyFilter">
         Apply
+      </button>
+    </div>
+    <div class="col-2">
+      <button class="btn btn-secondary" @click="reset">
+        Reset
       </button>
     </div>
   </div>
@@ -234,6 +240,10 @@ export default {
         else if(item.operator == 'not null') {
           this.query[item.path]['$ne'] = null;
         }
+        else if(item.operator == '$regex') {
+          this.query[item.path]['$regex'] = item.value;
+          this.query[item.path]['$options'] = 'i';
+        }
         else {
           this.query[item.path][item.operator] = item.value;
         }
@@ -250,6 +260,15 @@ export default {
       let filter_key = this.collection + ':filter';
       ConfigService.set(filter_key, this.items, { ttl });
 
+      this.$router.push(`/coll/${this.connection}/${this.database}/${this.collection}/index`);
+    },
+
+    async reset() {
+      const ttl = 1000;
+      let filter_key = this.collection + ':filter';
+      ConfigService.set(filter_key, null, { ttl });
+      let query_key = this.collection + ':query';
+      ConfigService.set(query_key, null, { ttl });
       this.$router.push(`/coll/${this.connection}/${this.database}/${this.collection}/index`);
     },
 
