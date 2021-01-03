@@ -12,7 +12,7 @@
         :database="database"
         :collection="collection" 
         :display-collection="displayCollection" 
-        action="Browse"
+        action="Home"
       />
     </div>
 
@@ -24,9 +24,9 @@
         v-b-tooltip.hover title="Insert (+)">
         <span class="fa fa-plus"></span>
       </a>
-      <a class="ml-2" v-shortkey.once="['/']" 
+      <a class="ml-2" v-shortkey.once="['q']" 
         @shortkey="openSearch()" href="#" @click.stop.prevent="openSearch()"
-        v-b-tooltip.hover title="Search (/)">
+        v-b-tooltip.hover title="Query (q)">
         <span class="fa fa-search"></span>
       </a>
       <a class="ml-2" v-shortkey.once="['r']"
@@ -38,6 +38,14 @@
         @shortkey="openShortcuts()" href="#" @click.stop.prevent="openShortcuts()"
         v-b-tooltip.hover title="Keyboard Shortcuts (?)">
         <span class="fa fa-question-circle"></span>
+      </a>
+      <a v-shortkey.once="['shift', 'arrowleft']"
+        @shortkey="pageLeft()" href="#" @click.stop.prevent="pageLeft()"
+        >
+      </a>
+      <a v-shortkey.once="['shift', 'arrowright']"
+        @shortkey="pageRight()" href="#" @click.stop.prevent="pageRight()"
+        >
       </a>
     </div>
 
@@ -128,31 +136,24 @@
   </b-modal>
 
   <!-- Search Modal -->
-  <b-modal id="search-modal" title="Search" v-model="showSearchModal">
+  <b-modal id="search-modal" title="Query" v-model="showSearchModal">
     <b-tabs content-class="mt-3">
-      <b-tab title="Query" active>
-        <div>
-          <b-textarea
-            v-model="query_text" rows="8"
-            :class="{ 'is-invalid': searchError  }"
-            autofocus></b-textarea>
+      <div>
+        <b-textarea
+          v-model="query_text" rows="8"
+          :class="{ 'is-invalid': searchError  }"
+          autofocus></b-textarea>
+      </div>
+      <div class="row">
+        <div class="col text-danger" v-if="searchError">
+          Invalid JSON.
         </div>
-        <div class="row">
-          <div class="col text-danger" v-if="insertError">
-            Invalid JSON.
-          </div>
-          <div class="col text-right">
-            <a class="small my-2" href="https://docs.mongodb.com/manual/reference/mongodb-extended-json/#example" target="_blank">
-              EJSON Format <i class="fa fa-external-link-alt"></i>
-            </a>
-          </div>
+        <div class="col text-right">
+          <a class="small my-2" href="https://docs.mongodb.com/manual/reference/mongodb-extended-json/#example" target="_blank">
+            EJSON Format <i class="fa fa-external-link-alt"></i>
+          </a>
         </div>
-      </b-tab>
-      <!-- 
-      <b-tab title="Search">
-        <p>..</p>
-      </b-tab>
-      -->
+      </div>
     </b-tabs>
     <template v-slot:modal-footer>
       <div class="w-100">
@@ -189,16 +190,32 @@
     <table class="table table-bordered">
       <tbody>
         <tr>
+          <td>r</td>
+          <td>Reload</td>
+        </tr>
+        <tr>
+          <td>d</td>
+          <td>Go to Database</td>
+        </tr>
+        <tr>
+          <td>h</td>
+          <td>Home (Go to Collection)</td>
+        </tr>
+        <tr>
           <td>/</td>
-          <td>Search</td>
+          <td>Filter</td>
+        </tr>
+        <tr>
+          <td>f</td>
+          <td>Fields</td>
         </tr>
         <tr>
           <td>+</td>
           <td>Insert</td>
         </tr>
         <tr>
-          <td>r</td>
-          <td>Reload</td>
+          <td>i</td>
+          <td>Indexes</td>
         </tr>
         <tr>
           <td>?</td>
@@ -306,7 +323,16 @@ export default {
       this.query = {};
     }
     key = this.collection + ':fields';
-    this.fields = ConfigService.get(key);
+    let fields = ConfigService.get(key);
+    if(!fields) {
+      fields = await this.default_fields();
+      ConfigService.set(key, fields);
+    }
+    let perPage = ConfigService.get('perPage');
+    if(perPage) {
+      this.perPage = perPage;
+    }
+    this.fields = fields;
   },
 
   watch: {
@@ -320,6 +346,9 @@ export default {
       else {
         this.displayTotal = '' + val;
       }
+    },
+    perPage(val) {
+      ConfigService.set('perPage', val);
     },
   },
 
@@ -335,9 +364,6 @@ export default {
       let records = result.records;
       this.totalRows = result.count;
       this.isCollEmpty = !records.length;
-      if(result.schema && result.schema.fields && !this.fields) {
-        this.fields = this.map_fields(result.schema.fields);
-      }
       return records;
     },
 
@@ -351,18 +377,53 @@ export default {
       return pretty_date;
     },
 
-    map_fields(schema_fields) {
-      return schema_fields.map(function(field) {
-        let key = field;
-        let label = field;
-        let sortable;
-        if(key == '_id') {
+    async default_fields() {
+      console.log('fetching default fields');
+      let schema_fields = await MongoService.loadSchema(this.connection, this.database, this.collection);
+      if(!schema_fields || !schema_fields.length) {
+        return null;
+      }
+
+      // Get Indexes
+      const db_indexes = await MongoService.getIndexes(this.connection, this.database, this.collection);
+
+      // Filter to Depth 1
+      schema_fields = schema_fields.filter(x => x.depth == 1);
+
+      // Sort by "order" field
+      schema_fields = _.sortBy(schema_fields, [ 'order' ]);
+
+      // Prepare List of Sortable Fields
+      let sortables = {};
+      for(let db_index of db_indexes) {
+        for(let index_field in db_index.key) {
+          sortables[index_field] = true;
+          break;
+        }
+      }
+
+      // Prepare and Return Fields
+      let fields = schema_fields.map(function(schema_field) {
+        let key = schema_field.path;
+        let label = schema_field.path;
+        let sortable, formatter;
+        if(sortables[key]) {
           sortable = true;
         }
-        return { key, label, sortable };
+        if(key == 'created' && schema_field.type == 'Number') {
+          formatter = 'unix_date_time_formatter';
+        }
+        if(key == 'updated' && schema_field.type == 'Number') {
+          formatter = 'unix_date_time_formatter';
+        }
+        return { key, label, sortable, formatter };
       });
+
+      // Store it
+
+      return fields;
     },
-    
+
     async clearCollection() {
       await MongoService.clear(this.connection, this.database, this.collection);
       this.reload();
@@ -410,6 +471,23 @@ export default {
     openShortcuts() {
       this.showShortcutsModal = true;
     },
+
+    gotoShortcut(path_code) {
+      this.$router.push(`/coll/${this.connection}/${this.database}/${this.collection}/${path_code}`);
+    },
+
+    pageLeft() {
+      if(this.currentPage > 1) {
+        this.currentPage--;
+      }
+    },
+    
+    pageRight() {
+      let page_count = Math.ceil(this.totalRows / this.perPage);
+      if(this.currentPage < page_count) {
+        this.currentPage++;
+      }
+    },
     
     applySearch() {
       let query;
@@ -440,21 +518,21 @@ export default {
     },
 
     async deleteRecords() {
-      this.showSearchModal = false;
       let query;
       if(this.query_text && this.query_text.trim()) {
         try {
           query = JSON.parse(this.query_text);
         }
         catch(err) {
-          // handle later
+          this.searchError = true;
+          return;
         }
       }
       if(!query) {
         query = {};
       }
+      this.showSearchModal = false;
       let result = await MongoService.deleteRecords(this.connection, this.database, this.collection, query);
-      console.log('delete result', result);
       this.$bvToast.toast(`${result.count} records deleted`, {
         title: 'Success',
         variant: 'success',

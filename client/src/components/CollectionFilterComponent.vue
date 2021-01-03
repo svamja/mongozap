@@ -76,7 +76,8 @@
               <option value="$ne">!=</option>
               <option value="$gt">&gt;</option>
               <option value="$lt">&lt;</option>
-              <option value="$regex">regex(i)</option>
+              <option value="$regex">Contains</option>
+              <option value="begins">Begins with</option>
               <option value="null">null</option>
               <option value="not null">not null</option>
             </select>
@@ -102,6 +103,10 @@
         <div class="col-2"> {{ item.operator }} </div>
         <div class="col-4"> {{ item.value }} </div>
         <div class="col-1">
+          <a href="#" class="text-warning" @click.stop.prevent="startEdit(i)">
+            <span class="fa fa-edit"></span>
+          </a>
+          &nbsp;
           <a href="#" class="text-danger" @click.stop.prevent="deleteItem(i)">
             <span class="fa fa-times"></span>
           </a>
@@ -218,10 +223,26 @@ export default {
       if(!path) {
         return;
       }
+      
+      // data type check
+      for(let field of this.fields) {
+        if(path == field.path) {
+          if(field.type == 'Number') {
+            value = parseFloat(value);
+          }
+        }
+      }
+
       let item = { path, operator, value };
       this.items.push(item);
       this.editItem.path = null;
       this.editItem.value = null;
+      this.updateQuery();
+    },
+
+    async startEdit(i) {
+      this.editItem = this.items[i];
+      this.items.splice(i, 1);
       this.updateQuery();
     },
 
@@ -239,6 +260,9 @@ export default {
         }
         else if(item.operator == 'not null') {
           this.query[item.path]['$ne'] = null;
+        }
+        else if(item.operator == 'begins') {
+          this.query[item.path]['$regex'] = '^' + item.value;
         }
         else if(item.operator == '$regex') {
           this.query[item.path]['$regex'] = item.value;

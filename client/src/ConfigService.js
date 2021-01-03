@@ -16,6 +16,7 @@ const ConfigService = {
     },
 
     set(key, val, options = {}) {
+        options.ttl = options.ttl || 24*36*1000;
         Vue.$storage.set(key, val, options);
     },
 

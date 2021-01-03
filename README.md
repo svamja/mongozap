@@ -33,15 +33,16 @@ this information is stored only in the default connection.
 
 Watch files and run with code changes
 
+
 ````
-git clone https://github.com/svamja/mongozap
-cd mongozap
-npm install
+# server
 npm run dev # or, npx nodemon server/index.js
+
+# client
 npm run client # or, cd client && npm run serve
 ````
 
-You can now access it on `http://localhost:3333`
+You can now access the development server on `http://localhost:8080`
 
 Build
 

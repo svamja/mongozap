@@ -115,6 +115,11 @@
           </button>
         </div>
         <div class="col-2">
+          <button class="btn btn-secondary" @click="clear">
+            Clear
+          </button>
+        </div>
+        <div class="col-2">
           <button class="btn btn-secondary" @click="reset">
             Reset
           </button>
@@ -186,8 +191,9 @@ export default {
       this.displayCollection = _.upperFirst(_.camelCase(this.collection));
     }
     this.formatter_options = [
-      { value: "unix_date_time_formatter", text: "Date Time (Unix Timestamp)" },
-      { value: "date_time_formatter", text: "Date Time (Milliseconds)" },
+      { value: '', text: '(None)' },
+      { value: "unix_date_time_formatter", text: "Unix Timestamp (Date Time)" },
+      { value: "date_time_formatter", text: "Milliseconds (Date Time)" },
     ];
     await this.reload();
     this.items = ConfigService.get(this.collection + ':fields') || [];
@@ -218,6 +224,7 @@ export default {
       if(!key) {
         return;
       }
+      label = label || key;
       let sortable = false;
       if(key == '_id') {
         sortable = true;
@@ -238,6 +245,10 @@ export default {
       ConfigService.set(fields_key, this.items, { ttl });
 
       this.$router.push(`/coll/${this.connection}/${this.database}/${this.collection}/index`);
+    },
+
+    async clear() {
+      this.items = [];
     },
 
     async reset() {

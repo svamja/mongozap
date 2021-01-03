@@ -22,6 +22,7 @@ const SchemaMgr = {
 
         await this.init();
 
+        // Obtain Sample Records
         const Model = await Mongo.get(connection_url, db, coll);
         const sort = { _id: -1 };
         const docs = await Model.find().sort(sort).limit(100).toArray();
@@ -30,6 +31,7 @@ const SchemaMgr = {
             return;
         }
 
+        // Get "Raw" Schema from mongodb-schema module
         let options = { storeValues: false };
         let schema = await new Promise(function(resolve, reject) {
             mongodbSchema(docs, options, (err, schema) => resolve(schema) );
@@ -42,12 +44,15 @@ const SchemaMgr = {
         // Delete Existing Records
         await this.SchemaModel.deleteMany({ db, coll });
 
-        // Build Fields
+        // Format Schema into Database Records
         this.depth = 0;
         this.fields = [];
         let fields = this.schema_fields(schema.fields, db, coll);
 
-        // Insert Fields
+        // Add Display Order to Top Level Fields
+        fields = this.field_order(fields, docs);
+
+        // Insert Schema Records
         await this.SchemaModel.insertMany(fields);
 
     },
@@ -114,7 +119,43 @@ const SchemaMgr = {
         }
         this.depth--;
         return this.fields;
-    }
+    },
+
+    field_order(schema_fields, docs) {
+
+        // Build an Index of all Orders using 10 records
+        let field_orders = {};
+
+        let len = docs.length > 10 ? 10: docs.length;
+
+        for(let i=0; i < len; i++) {
+            let doc = docs[i];
+            let index = 0;
+            for(let field_name in doc) {
+                index++;
+                field_orders[field_name] = field_orders[field_name] || [];
+                field_orders[field_name].push(index);
+            }
+        }
+
+        // Average Out the Order
+        let average_orders = {};
+        for(let field_name in field_orders) {
+            let orders = field_orders[field_name];
+            let average_order = orders.reduce((a, b) => a + b) / orders.length;
+            average_orders[field_name] = Math.round(average_order);
+        }
+
+        // Add Order to Schema Fields
+        for(let schema_field of schema_fields) {
+            let field_name = schema_field.path;
+            let order = average_orders[field_name] || 99;
+            schema_field.order = order;
+        }
+
+        return schema_fields;
+
+    },
 
 }
 

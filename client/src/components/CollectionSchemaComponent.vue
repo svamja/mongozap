@@ -20,10 +20,10 @@
         v-b-tooltip.hover title="Reload (r)">
         <span class="fa fa-sync"></span>
       </a>
-      <a v-shortkey.once="['r']" class="text-danger ml-2"
+      <a v-shortkey.once="['b']" class="text-danger ml-2"
         @shortkey="rebuildSchema()" href="#" 
         v-b-modal.rebuild-confirmation-modal 
-        v-b-tooltip.hover title="Rebuild">
+        v-b-tooltip.hover title="Rebuild (b)">
         <span class="fa fa-undo"></span>
       </a>
     </div>
@@ -39,7 +39,7 @@
         </div>
         <div>
           <a class="btn btn-primary" @click="rebuildSchema">
-            Build Schema
+            Build Schema (b)
           </a>
         </div>
       </div>
