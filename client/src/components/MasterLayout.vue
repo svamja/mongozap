@@ -18,8 +18,12 @@
 
       <!-- Right aligned nav items -->
       <b-navbar-nav class="ml-auto">
-        <b-nav-item href="https://github.com/svamja/mongozap" target="_blank">
+        <b-nav-item v-if="username">
           {{ username }}
+          (<a href="#" @click="logout">Logout</a>)
+        </b-nav-item>
+        <b-nav-item v-else>
+          <router-link to="/login">Login</router-link>
         </b-nav-item>
         <b-nav-item href="https://github.com/svamja/mongozap" target="_blank">
           <img alt="Vue logo" src="../assets/github-logo.png" style="height: 1.4em" />
@@ -62,6 +66,13 @@ export default {
     let authUser = this.$storage.get('authUser');
     if(authUser && authUser.username) {
       this.username = authUser.username;
+    }
+  },
+  methods: {
+    async logout() {
+      this.$storage.remove('authUser');
+      this.$router.push('/login');
+      window.location.reload();
     }
   }
 }

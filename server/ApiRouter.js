@@ -3,6 +3,10 @@ const ApiController = require('./ApiController');
 
 const router = express.Router();
 
+// Login
+router.post('/login', ApiController.login);
+
+// Db Operations
 router.get('/databases', ApiController.databases);
 router.get('/db/info', ApiController.db_info);
 router.get('/collections', ApiController.collections);

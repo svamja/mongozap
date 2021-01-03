@@ -11,35 +11,45 @@
     </div>
   </div>
 
-  <div class="container table-container">
-
-    <div class="row">
-      <div class="col">
-        Username
-      </div>
-      <div class="col">
-        <input class="form-input" type="text" v-model="username" />
-      </div>
-    </div>
-
-    <div class="row">
-      <div class="col">
-        Password
-      </div>
-      <div class="col">
-        <input class="form-input" type="password" v-model="password" />
-      </div>
-    </div>
-
-  </div>
-
-  <div class="container mt-3">
-    <div class="row justify-content-end">
-      <div class="col-auto">
-        <b-button variant="primary" @click="login">Login</b-button>
+  <div v-if="error" class="container">
+    <div class="row my-2">
+      <div class="col text-danger">
+        {{ error }}
       </div>
     </div>
   </div>
+
+  <form @submit.prevent="login">
+    <div class="container table-container">
+
+      <div class="row">
+        <div class="col">
+          Username
+        </div>
+        <div class="col">
+          <input class="form-input" type="text" v-model="username" />
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col">
+          Password
+        </div>
+        <div class="col">
+          <input class="form-input" type="password" v-model="password" />
+        </div>
+      </div>
+
+    </div>
+
+    <div class="container mt-3">
+      <div class="row justify-content-end">
+        <div class="col-auto">
+          <b-button variant="primary" type="submit" @click.prevent="login">Login</b-button>
+        </div>
+      </div>
+    </div>
+  </form>
 
 </div>
 
@@ -47,12 +57,16 @@
 
 <script>
 
+import MongoService from '../MongoService';
+import ConfigService from '../ConfigService';
+
 export default {
 
   data() {
     return {
       username: '',
       password: '',
+      error: '',
       isAuthenticated: false
     }
   },
@@ -64,9 +78,17 @@ export default {
 
     async login() {
       let authUser = { username: this.username };
-      // localStorage.setItem('is_authenticated', 1);
-      this.$storage.set('authUser', authUser);
-      this.$router.push('/');
+      let result = await MongoService.login(this.username, this.password);
+      if(result.status == 'success' && result.user) {
+        ConfigService.set('authUser', result.user, { ttl: 30*24*3600*1000 });
+        window.location = '/login';
+      }
+      else if(result.status == 'error') {
+        this.error = 'Username / Password Invalid';
+      }
+      else {
+        this.error = 'Server/Network Error: Unable to Login';
+      }
     },
 
   },

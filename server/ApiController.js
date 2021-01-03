@@ -5,6 +5,44 @@ const _ = require('lodash');
 
 const ApiController = {
 
+    async login(req, res) {
+
+        // input credentials
+        const username = req.query.username || req.body.username;
+        const password = req.query.password || req.body.password;
+
+        let status, user;
+
+        if(process.env.ALLOW_DEFAULT_LOGIN) {
+            // default credentials
+            let default_user = process.env.DEFAULT_USERNAME || 'admin';
+            let default_password = process.env.DEFAULT_PASSWORD || 'admin';
+            let default_role = process.env.DEFAULT_ROLE || 'admin';
+
+            // check default username & password
+            if(default_user === username && default_password === password) {
+                status = 'success';
+                user = { username, role: default_role, is_default: true };
+                res.json({ status: 'success', user });
+                return;
+            }
+        }
+
+        // check from database 
+        const connection_url = SettingsMgr.settings.default_connection;
+        const db = SettingsMgr.settings.mongozap_database;
+        const coll = 'users';
+        const Users = await Mongo.get(connection_url, db, coll);
+        user = await Users.findOne({ username });
+        if(user) {
+            status = 'success';
+        }
+        else {
+            status = 'error';
+        }
+        res.json({ status, user });
+    },
+    
     databases: async function(req, res) {
         const connection_url = req.query.connection_url || req.body.connection_url;
         const databases = await Mongo.get_databases(connection_url);

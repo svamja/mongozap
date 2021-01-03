@@ -8,7 +8,7 @@ const ConfigService = {
     // Get Collections
     get(key) {
         const defaults = {
-            'collection_display': 'model_name'
+            'collection_display': 'name'
         };
         let result = Vue.$storage.get(key);
         result = result || defaults[key];

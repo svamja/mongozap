@@ -29,3 +29,26 @@ It uses .env file and environment variables for configuration. Below variables a
 this information is stored only in the default connection.
 
 
+## Develop
+
+Watch files and run with code changes
+
+````
+git clone https://github.com/svamja/mongozap
+cd mongozap
+npm install
+npm run dev # or, npx nodemon server/index.js
+npm run client # or, cd client && npm run serve
+````
+
+You can now access it on `http://localhost:3333`
+
+Build
+
+````
+cd client
+npm run build
+````
+
+
+
