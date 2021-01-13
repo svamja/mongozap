@@ -14,6 +14,9 @@
         <b-nav-item href="#"><router-link to="/">Connections</router-link></b-nav-item>
         <b-nav-item href="#"><router-link to="/db/0/list">Databases</router-link></b-nav-item>
         <b-nav-item href="#"><router-link to="/settings">Settings</router-link></b-nav-item>
+        <b-nav-item href="#" v-if='is_allowed_users'>
+          <router-link to="/users">Users</router-link>
+        </b-nav-item>
       </b-navbar-nav>
 
       <!-- Right aligned nav items -->
@@ -51,19 +54,26 @@
 
 <script>
 
+import ConfigService from '../ConfigService';
+
 export default {
   data() {
     return {
       connection: '',
       database: '',
       collection: '',
-      username: ''
+      username: '',
+      is_allowed_users: false,
     }
   },
   async created () {
     this.connection = this.$route.params.connection;
     this.database = this.$route.params.database;
-    let authUser = this.$storage.get('authUser');
+
+    let authUser = ConfigService.get('authUser');
+    if(authUser && authUser.role === 'admin') {
+      this.is_allowed_users = true;
+    }
     if(authUser && authUser.username) {
       this.username = authUser.username;
     }

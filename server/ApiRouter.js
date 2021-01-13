@@ -5,6 +5,7 @@ const router = express.Router();
 
 // Login
 router.post('/login', ApiController.login);
+router.post('/add_user', ApiController.add_user);
 
 // Db Operations
 router.get('/databases', ApiController.databases);

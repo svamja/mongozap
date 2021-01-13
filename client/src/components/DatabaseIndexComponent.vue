@@ -10,6 +10,7 @@
       <b-dropdown id="dropdown-dropright" dropright text="Collections" variant="muted" class="text-muted">
         <b-dropdown-item :to="`/db/${connection}/${database}/home`">Home</b-dropdown-item>
         <b-dropdown-item :to="`/db/${connection}/${database}/index`">Collections</b-dropdown-item>
+        <b-dropdown-item href="#" v-b-modal.new-collection-modal>New Collection</b-dropdown-item>
       </b-dropdown>
     </div>
   </div>
@@ -34,6 +35,19 @@
     </div>
   </div>
 
+  <!-- New Collection Modal -->
+  <b-modal id="new-collection-modal" title="New Collection"
+    ok-title="Create"
+    @ok="createCollection()">
+    <p>
+      Collection Name
+        <b-input
+          v-model="new_collection_name" 
+          autofocus></b-input>
+    </p>
+  </b-modal>
+
+
 </div>
 
 </template>
@@ -49,6 +63,7 @@ export default {
       connection: '',
       database: '',
       search_text: '',
+      new_collection_name: '',
       collections: [],
       single_filter: false
     }
@@ -90,6 +105,7 @@ export default {
     },
   },
   methods: {
+    
     endSearch() {
       if(this.filtered_collections.length) {
         let collection = this.filtered_collections[0];
@@ -106,7 +122,13 @@ export default {
         }
         this.$router.push(`/coll/${this.connection}/${this.database}/${collection.name}/index`);
       }
-    }
+    },
+
+    createCollection() {
+      this.$router.push(`/coll/${this.connection}/${this.database}/${this.new_collection_name}/index`);
+    },
+
+
   }
 }
 

@@ -33,7 +33,8 @@ const ApiController = {
         const db = SettingsMgr.settings.mongozap_database;
         const coll = 'users';
         const Users = await Mongo.get(connection_url, db, coll);
-        user = await Users.findOne({ username });
+        const hashed_password = ApiController.hash_password(password);
+        user = await Users.findOne({ username, password: hashed_password });
         if(user) {
             status = 'success';
         }
@@ -41,6 +42,56 @@ const ApiController = {
             status = 'error';
         }
         res.json({ status, user });
+    },
+
+    async add_user(req, res) {
+
+        // input credentials
+        const username = req.query.username || req.body.username;
+        const password = req.query.password || req.body.password;
+
+        let status, sub_status, user;
+
+        // check for errors
+        if(!username || !password) {
+            status = 'error';
+            sub_status = 'missing_field';
+            return res.json({ status, sub_status, user });
+        }
+        else if(password.length < 4) {
+            status = 'error';
+            sub_status = 'short_password';
+            return res.json({ status, sub_status, user });
+        }
+
+        // get collection
+        const connection_url = SettingsMgr.settings.default_connection;
+        const db = SettingsMgr.settings.mongozap_database;
+        const coll = 'users';
+        const Users = await Mongo.get(connection_url, db, coll);
+
+        // check from existing user 
+        user = await Users.findOne({ username });
+        if(user) {
+            status = 'error';
+            sub_status = 'existing_user';
+            return res.json({ status, sub_status, user });
+        }
+
+        // create user
+        const hashed_password = ApiController.hash_password(password);
+        await Users.insertOne({ username, password: hashed_password });
+        status = 'success';
+        return res.json({ status, sub_status, user });
+
+    },
+
+    hash_password(password) {
+        let crypto = require('crypto');
+        let hash_key = process.env.HASH_KEY || 'nGfdJuILpwD';
+        let input = hash_key + ':' + password;
+        let hash = crypto.createHash('md5').update(input).digest('hex');
+        return hash;
     },
     
     databases: async function(req, res) {
@@ -82,9 +133,12 @@ const ApiController = {
 
         // Get Params
         const connection_url = req.query.connection_url || req.body.connection_url;
-        const db = req.query.db || req.body.db;
+        let db = req.query.db || req.body.db;
         const coll = req.query.coll || req.body.coll;
         const page = req.query.page || req.body.page;
+        if(db === '_mongozap') {
+            db = process.env.MONGOZAP_DATABASE;
+        }
 
         // Query
         let query;

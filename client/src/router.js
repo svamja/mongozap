@@ -18,6 +18,7 @@ import CollectionIndexesComponent from './components/CollectionIndexesComponent'
 import CollectionFilterComponent from './components/CollectionFilterComponent';
 import CollectionFieldsComponent from './components/CollectionFieldsComponent';
 import SettingsComponent from './components/SettingsComponent';
+import UsersComponent from './components/UsersComponent';
 import LoginComponent from './components/LoginComponent';
 
 Vue.use(Router);
@@ -34,6 +35,7 @@ const router = new Router({
     { path: '/coll/:connection/:database/:collection/fields', component: CollectionFieldsComponent },
     { path: '/coll/:connection/:database/:collection/indexes', component: CollectionIndexesComponent },
     { path: '/settings', component: SettingsComponent },
+    { path: '/users', component: UsersComponent },
     {
       path: '/login',
       component: LoginComponent,

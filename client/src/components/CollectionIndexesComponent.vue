@@ -47,7 +47,7 @@
         <div class="col text-monospace">
           {{ JSON.stringify(index.key) }}
         </div>
-        <div class="col text-center">
+        <div v-if="is_allowed_delete" class="col text-center">
           <span class="text-warning fa fa-trash"
             v-if="index.name != '_id_'"
             @click="deleteConfirmation(index)"></span>
@@ -93,6 +93,7 @@ export default {
       indexes: [],
       deleteItem: null,
       showDeleteModal: false,
+      is_allowed_delete: false,
     }
   },
 
@@ -106,6 +107,10 @@ export default {
     }
     else {
       this.displayCollection = _.upperFirst(_.camelCase(this.collection));
+    }
+    let authUser = ConfigService.get('authUser');
+    if(authUser.role === 'admin') {
+      this.is_allowed_delete = true;
     }
     await this.reload();
   },

@@ -1,3 +1,8 @@
+const DotEnv = require('dotenv');
+const path = require('path');
+
+DotEnv.config();
+DotEnv.config({ path: path.resolve(__dirname, '.env.default') });
 
 /*
     Run it to debug some of the API code, eg:
@@ -22,7 +27,7 @@ async function main() {
 
     console.log(`running: ${ModuleName}.${fn_name}(` + args.join(', ') + ')');
 
-    let module = require('./' + ModuleName);
+    let module = require('./server/' + ModuleName);
     let result = await module[fn_name](...args);
     console.log(result);
 

@@ -88,7 +88,9 @@
 
       <template v-slot:row-details="row">
         <pre v-highlightjs><code class="json">{{ JSON.stringify(row.item, null, 2) }}</code></pre>
-        <div class="small"><a href="#" @click.stop.prevent="confirmDelete(row.item)">Delete</a></div>
+        <div v-if="is_allowed_delete" class="small">
+          <a href="#" @click.stop.prevent="confirmDelete(row.item)">Delete</a>
+        </div>
       </template>
 
   </b-table>
@@ -299,7 +301,8 @@ export default {
       totalRows: 2000,
       displayTotal: '100+',
       currentPage: 1,
-      pageOptions: [ 5, 10, 20, 50, 100, 500, 1000, 2000 ]
+      pageOptions: [ 5, 10, 20, 50, 100, 500, 1000, 2000 ],
+      is_allowed_delete: false,
     }
   },
 
@@ -333,6 +336,10 @@ export default {
       this.perPage = perPage;
     }
     this.fields = fields;
+    let authUser = ConfigService.get('authUser');
+    if(authUser.role === 'admin') {
+      this.is_allowed_delete = true;
+    }
   },
 
   watch: {

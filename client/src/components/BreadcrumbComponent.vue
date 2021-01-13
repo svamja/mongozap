@@ -24,8 +24,8 @@
     <b-dropdown-item href="#" :to="`/coll/${connection}/${database}/${collection}/indexes`">
       Indexes (i)
     </b-dropdown-item>
-    <b-dropdown-item href="#" v-b-modal.clear-confirmation-modal variant="danger">Clear</b-dropdown-item>
-    <b-dropdown-item href="#" v-b-modal.drop-confirmation-modal variant="danger">Drop</b-dropdown-item>
+    <b-dropdown-item href="#" v-if="is_allowed_clear" v-b-modal.clear-confirmation-modal variant="danger">Clear</b-dropdown-item>
+    <b-dropdown-item href="#" v-if="is_allowed_drop" v-b-modal.drop-confirmation-modal variant="danger">Drop</b-dropdown-item>
   </b-dropdown>
 
   <!-- Hidden Keyboard Shortcuts -->
@@ -66,8 +66,26 @@
 
 <script>
 
+import ConfigService from '../ConfigService';
+
 export default {
+
   props: [ "connection", "database", "collection",  "displayCollection", "action" ],
+
+  data() {
+    return {
+      is_allowed_drop: false,
+      is_allowed_clear: false
+    }
+  },
+
+  created() {
+    let authUser = ConfigService.get('authUser');
+    if(authUser.role === 'admin') {
+      this.is_allowed_clear = true;
+      this.is_allowed_drop = true;
+    }
+  },
 
   methods: {
     gotoShortcut(path_code) {

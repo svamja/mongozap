@@ -138,6 +138,11 @@ class MongoService {
         return res.data;
     }
 
+    static async add_user(username, password) {
+        const res = await this.api_call('post', '/add_user', { username, password });
+        return res.data;
+    }
+
 }
 
 export default MongoService;
