@@ -127,7 +127,7 @@ export default {
 
     async create_user() {
       let authUser = { username: this.username };
-      let result = await MongoService.add_user(this.username, this.password);
+      let result = await MongoService.add_user(this.username, this.password, this.role);
       if(result.status == 'success') {
         this.username = '';
         this.password = '';

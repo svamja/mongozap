@@ -48,7 +48,8 @@ const ApiController = {
 
         // input credentials
         const username = req.query.username || req.body.username;
-        const password = req.query.password || req.body.password;
+        let password = req.query.password || req.body.password;
+        const role = req.query.role || req.body.role || 'user';
 
         let status, sub_status, user;
 
@@ -79,8 +80,8 @@ const ApiController = {
         }
 
         // create user
-        const hashed_password = ApiController.hash_password(password);
-        await Users.insertOne({ username, password: hashed_password });
+        password = ApiController.hash_password(password);
+        await Users.insertOne({ username, password, role });
         status = 'success';
         return res.json({ status, sub_status, user });
 

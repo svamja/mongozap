@@ -176,6 +176,7 @@
           Reset
         </b-button>
         <b-button
+          v-if="is_allowed_delete" 
           variant="danger"
           size="sm"
           class="mr-2 float-right"

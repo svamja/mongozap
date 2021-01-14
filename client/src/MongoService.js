@@ -9,7 +9,7 @@ class MongoService {
     static async api_call(method, path, params = {}) {
 
         // Resolve Connection Id to Connection URL
-        if(params.connection_id) {
+        if(params.connection_id !== undefined && params.connection_id !== null) {
             params.connection_url = await ConfigService.connection(params.connection_id);
             delete(params.connection_id);
         }
@@ -138,8 +138,8 @@ class MongoService {
         return res.data;
     }
 
-    static async add_user(username, password) {
-        const res = await this.api_call('post', '/add_user', { username, password });
+    static async add_user(username, password, role) {
+        const res = await this.api_call('post', '/add_user', { username, password, role });
         return res.data;
     }
 
