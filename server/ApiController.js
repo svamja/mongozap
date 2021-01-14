@@ -12,8 +12,12 @@ const ApiController = {
         const password = req.query.password || req.body.password;
 
         let status, user;
+        let allow_default_login = process.env.ALLOW_DEFAULT_LOGIN &&
+            (process.env.ALLOW_DEFAULT_LOGIN.toLowerCase() === 'yes' ||
+                process.env.ALLOW_DEFAULT_LOGIN.toLowerCase() === 'y' ||
+                parseInt(process.env.ALLOW_DEFAULT_LOGIN) === 1);
 
-        if(process.env.ALLOW_DEFAULT_LOGIN) {
+        if(allow_default_login) {
             // default credentials
             let default_user = process.env.DEFAULT_USERNAME || 'admin';
             let default_password = process.env.DEFAULT_PASSWORD || 'admin';
