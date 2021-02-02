@@ -1,23 +1,43 @@
 # Screenshots
 
 ### Connections
-<img src="screenshots/connect.png" />
+---
+
+![Connections](screenshots/connections.png)
+
 
 ### Collection Index (Browse)
-<img src="screenshots/index.png" />
+---
+
+![Browse](screenshots/index.png)
+
 
 ### View Document
-<img src="screenshots/document.png" />
+---
+
+![View Document](screenshots/document.png)
+
 
 ### Select Fields
-<img src="screenshots/fields.png" />
+---
+
+![Fields](screenshots/fields.png)
+
 
 ### Filter Documents
-<img src="screenshots/filter.png" />
+---
+
+![Filter](screenshots/filter.png)
+
 
 ### View Schema
-<img src="screenshots/schema.png" />
+---
+
+![Schema](screenshots/schema.png)
+
 
 ### Manage Users
-<img src="screenshots/users.png" />
+---
+
+![Users](screenshots/users.png)
 
