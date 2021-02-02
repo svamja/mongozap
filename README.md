@@ -29,6 +29,13 @@ It uses .env file and environment variables for configuration. Below variables a
 this information is stored only in the default connection.
 
 
+## Screenshots
+
+<img src="screenshots/index.png">
+
+More screenshots [here](screenshots.md).
+
+
 ## Develop
 
 Watch files and run with code changes

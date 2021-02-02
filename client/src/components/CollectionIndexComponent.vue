@@ -112,10 +112,11 @@
   </div>
 
   <!-- Insert Modal -->
-  <b-modal id="insert-modal" title="Insert Document" v-model="showInsertModal">
+  <b-modal id="insert-modal" title="Insert Document" size="xl" v-model="showInsertModal">
     <div>
       <b-textarea
-        v-model="insertItem" rows="8"
+        id="insert_textarea"
+        v-model="insertItem" rows="12"
         :class="{ 'is-invalid': insertError  }"
         autofocus></b-textarea>
     </div>
@@ -196,11 +197,11 @@
 
   <!-- Keyboard Shortcuts Modal -->
   <b-modal id="shortcuts-modal" title="Keyboard Shortcuts" v-model="showShortcutsModal" ok-only>
-    <table class="table table-bordered">
+    <table class="table table-bordered table-sm">
       <tbody>
         <tr>
           <td>r</td>
-          <td>Reload</td>
+          <td>Reload Documents</td>
         </tr>
         <tr>
           <td>d</td>
@@ -225,6 +226,14 @@
         <tr>
           <td>i</td>
           <td>Indexes</td>
+        </tr>
+        <tr>
+          <td>&lt;shift&gt; &rarr;</td>
+          <td>Next Page</td>
+        </tr>
+        <tr>
+          <td>&lt;shift&gt; &larr;</td>
+          <td>Previous Page</td>
         </tr>
         <tr>
           <td>?</td>
@@ -258,16 +267,16 @@
 
   <!-- Edit Modal -->
   <b-modal id="edit-modal" title="Edit Document"
-    v-model="showEditModal"
+    v-model="showEditModal" size="xl" 
     ok-variant="success" ok-title="Save"
     @ok="updateRecord">
 
     <div>
       <b-textarea
-        id="textarea"
+        id="edit_textarea"
         v-model="editItem"
         :class="{ 'is-invalid': editError  }"
-        rows="8"
+        rows="12"
         autofocus></b-textarea>
     </div>
     <div class="row">
@@ -660,6 +669,11 @@ td {
 .id-field {
   color: var(--primary);
   cursor: pointer;
+}
+
+#edit_textarea, #insert_textarea {
+  font-family: Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
+  font-size: 0.8rem;
 }
 
 </style>
