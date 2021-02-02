@@ -1,8 +1,20 @@
 # MongoZap
 
-A Faster MongoDB Client
+MongoDB GUI Client, geared towards faster productivity 
 
-## Installation
+* keyboard shortcuts
+* CRUD operations (Cread, Read, Update, Delete)
+* generate & view schema
+* tabular + json view
+* selection of fields
+* filtering by fields + raw query
+* manage indexes
+
+more to come..
+
+Single Page Application architecture using VueJS and NodeJS.
+
+## Getting Started
 
 
 ````
@@ -12,7 +24,7 @@ npm install
 npm start
 ````
 
-You can now access it on `http://localhost:3333`
+You can now access it on [http://localhost:3333](http://localhost:3333)
 
 ## Server Configuration
 
@@ -31,7 +43,7 @@ this information is stored only in the default connection.
 
 ## Screenshots
 
-<img src="screenshots/index.png">
+![Screenshots](screenshots/index.png)
 
 More screenshots [here](screenshots.md).
 
