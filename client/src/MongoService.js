@@ -7,7 +7,6 @@ const baseUrl = 'api';
 class MongoService {
 
     static async api_call(method, path, params = {}) {
-
         // Resolve Connection Id to Connection URL
         if(params.connection_id !== undefined && params.connection_id !== null) {
             params.connection_url = await ConfigService.connection(params.connection_id);
@@ -27,21 +26,37 @@ class MongoService {
         else if(method == 'delete') {
             res = await axios.delete(url, { data: params });
         }
-        return res;
+        return res.data;
+    }
+
+    static async api(caller, method, fn_name, params = {}) {
+        params.connection_id = caller.connection;
+        if(caller.database) {
+            params.db = caller.database;          
+        }
+        if(caller.collection) {
+            params.coll = caller.collection;
+        }
+        let path = '/api/' + fn_name;
+        return await this.api_call(method, path, params);
+    }
+
+    static async get(caller, fn_name, params = {}) {
+        return await this.api(caller, 'get', fn_name, params);
+    }
+
+    static async post(caller, fn_name, params = {}) {
+        return await this.api(caller, 'post', fn_name, params);
     }
 
     // Get Collections
     static async databases(connection_id) {
-        const res = await this.api_call('get', '/databases', { connection_id });
-        return res.data;
+        return await this.api_call('get', '/databases', { connection_id });
     }
 
     // Get Collections
     static async collections(connection_id, db) {
-        const res = await this.api_call('get', '/collections', { connection_id, db })
-        // const url = baseUrl + `/collections?db=${db}`;
-        // const res = await axios.get(url);
-        let collections = res.data;
+        let collections = await this.api_call('get', '/collections', { connection_id, db });
         collections = _.sortBy(collections, [ 'name' ]);
         return collections;
     }
@@ -67,80 +82,65 @@ class MongoService {
                 data.sort[ctx.sortBy] = sortdir;
             }
         }
-        const res = await this.api_call('post', '/collection/index', data);
-        const result = res.data;
+        const result = await this.api_call('post', '/collection/index', data);
         return result;
     }
 
     static async clear(connection_id, db, coll) {
-        const res = await this.api_call('post', '/collection/clear', { connection_id, db, coll });
-        return res.data;
+        return await this.api_call('post', '/collection/clear', { connection_id, db, coll });
     }
 
     static async drop(connection_id, db, coll) {
-        const res = await this.api_call('post', '/collection/drop', { connection_id, db, coll });
-        return res.data;
+        return await this.api_call('post', '/collection/drop', { connection_id, db, coll });
     }
 
     static async loadSchema(connection_id, db, coll) {
-        const res = await this.api_call('get', '/collection/schema', { connection_id, db, coll });
-        return res.data;
+        return await this.api_call('get', '/collection/schema', { connection_id, db, coll });
     }
 
     static async rebuildSchema(connection_id, db, coll) {
         let rebuild = true;
-        const res = await this.api_call('get', '/collection/schema', { connection_id, db, coll, rebuild });
-        return res.data;
+        return await this.api_call('get', '/collection/schema', { connection_id, db, coll, rebuild });
     }
 
     static async bulkOps(connection_id, db, coll, ops) {
-        const res = await this.api_call('post', '/collection/bulk', { connection_id, db, coll, ops });
-        return res.data;
+        return await this.api_call('post', '/collection/bulk', { connection_id, db, coll, ops });
     }
 
     static async getIndexes(connection_id, db, coll) {
-        const res = await this.api_call('get', '/collection/indexes', { connection_id, db, coll });
-        return res.data;
+        return await this.api_call('get', '/collection/indexes', { connection_id, db, coll });
     }
 
     static async deleteIndex(connection_id, db, coll, index_name) {
-        const res = await this.api_call('delete', '/collection/indexes', { connection_id, db, coll, index_name });
-        return res.data;
+        return await this.api_call('delete', '/collection/indexes', { connection_id, db, coll, index_name });
     }
 
     static async getServerSettings() {
-        const res = await this.api_call('get', '/settings/get');
-        return res.data;
+        return await this.api_call('get', '/settings/get');
     }
 
     static async setServerSettings(settings) {
-        const res = await this.api_call('post', '/settings/set', { settings });
-        return res;
+        return await this.api_call('post', '/settings/set', { settings });
     }
 
     static async fetchDbInfo(connection_id, db) {
-        const res = await this.api_call('get', '/db/info', { connection_id, db });
-        return res.data;
+        return await this.api_call('get', '/db/info', { connection_id, db });
     }
 
     static async insertDoc(connection_id, db, coll, doc) {
-        const res = await this.api_call('post', '/collection/insert', { connection_id, db, coll, doc });
-        return res.data;
+        return await this.api_call('post', '/collection/insert', { connection_id, db, coll, doc });
     }
 
-    static async deleteRecords(connection_id, db, coll, query) {
-        const res = await this.api_call('post', '/collection/delete', { connection_id, db, coll, query });
-        return res.data;
+    static async delete_records(connection_id, db, coll, query) {
+        return await this.api_call('post', '/api/delete_records', { connection_id, db, coll, query });
     }
 
     static async login(username, password) {
-        const res = await this.api_call('post', '/login', { username, password });
-        return res.data;
+        return await this.api_call('post', '/login', { username, password });
     }
 
     static async add_user(username, password, role) {
-        const res = await this.api_call('post', '/add_user', { username, password, role });
-        return res.data;
+        return await this.api_call('post', '/add_user', { username, password, role });
     }
 
 }

@@ -22,7 +22,6 @@ router.post('/collection/insert', ApiController.collection_insert);
 // Clear & Drop
 router.post('/collection/clear', ApiController.collection_clear);
 router.post('/collection/drop', ApiController.collection_drop);
-router.post('/collection/delete', ApiController.collection_delete);
 
 // Manage Indexes
 router.get('/collection/indexes', ApiController.indexes_get);
@@ -38,5 +37,8 @@ router.post('/collection/bulk', ApiController.bulk);
 // Manage Config
 router.get('/settings/get', ApiController.settings_get);
 router.post('/settings/set', ApiController.settings_set);
+
+router.get('/api/:fn_name', ApiController.api);
+router.post('/api/:fn_name', ApiController.api);
 
 module.exports = router;

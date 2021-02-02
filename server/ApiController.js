@@ -1,9 +1,16 @@
 const Mongo = require('./Mongo');
 const SchemaMgr = require('./SchemaMgr');
 const SettingsMgr = require('./SettingsMgr');
+const { EJSON } = require('bson');
 const _ = require('lodash');
 
 const ApiController = {
+
+    async api(req, res) {
+        let fn_name = req.params.fn_name;
+        console.log('api: ', fn_name);
+        return await ApiController[fn_name](req, res);
+    },
 
     async login(req, res) {
 
@@ -192,7 +199,10 @@ const ApiController = {
         }
 
         // Get Records
-        const records = await cursor.toArray();
+        let records = await cursor.toArray();
+
+        // Convert to EJSON
+        records = records.map(r => EJSON.serialize(r));
 
         // Estimated Count
         let count = records.length;
@@ -256,7 +266,23 @@ const ApiController = {
         res.json({ status: 'success', count: result.insertedCount });
     },
 
-    async collection_delete(req, res) {
+    async update_documents(req, res) {
+        const { EJSON } = require('bson');
+
+        // Get Collection
+        const connection_url = req.query.connection_url || req.body.connection_url;
+        const db = req.query.db || req.body.db;
+        const coll = req.query.coll || req.body.coll;
+        let query = req.query.query || req.body.query;
+        let changes = req.query.changes || req.body.changes;
+        const Model = await Mongo.get(connection_url, db, coll);
+        query = EJSON.deserialize(query);
+        changes = EJSON.deserialize(changes);
+        let result = await Model.updateMany(query, changes);
+        res.json({ status: 'success', count: result.modifiedCount });
+    },
+
+    async delete_records(req, res) {
         const { EJSON } = require('bson');
 
         // Get Collection

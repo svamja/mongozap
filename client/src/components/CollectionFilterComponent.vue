@@ -230,6 +230,12 @@ export default {
           if(field.type == 'Number') {
             value = parseFloat(value);
           }
+          else if(field.type == 'Boolean') {
+            value = value.toLowerCase() == 'true';
+          }
+          else if(field.type == 'ObjectID') {
+            value = { '$oid': value };
+          }
         }
       }
 

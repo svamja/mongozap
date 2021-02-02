@@ -6,7 +6,7 @@
   <!-- Breadcrumb -->
   <b-button variant="link" :to="`/db/${connection}/${database}/index`">{{ database }} (d) </b-button>
   <span class="text-muted">/</span>
-  <b-button variant="link" :to="`/coll/${connection}/${database}/${collection}/index`">{{ displayCollection }}</b-button>
+  <b-button variant="link" :to="`/coll/${connection}/${database}/${collection}/index`">{{ displayCollection }} (h) </b-button>
   <span class="text-muted">/</span>
   <b-dropdown id="dropdown-dropright" dropright :text="action" variant="muted" class="text-muted">
     <b-dropdown-item href="#" :to="`/coll/${connection}/${database}/${collection}/index`">

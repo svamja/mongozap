@@ -88,8 +88,14 @@
 
       <template v-slot:row-details="row">
         <pre v-highlightjs><code class="json">{{ JSON.stringify(row.item, null, 2) }}</code></pre>
-        <div v-if="is_allowed_delete" class="small">
-          <a href="#" @click.stop.prevent="confirmDelete(row.item)">Delete</a>
+        <div class="small">
+          <span v-if="is_allowed_edit">
+            <a href="#" @click.stop.prevent="showEdit(row)">Edit</a>
+          </span>
+          &nbsp;
+          <span v-if="is_allowed_delete">
+            <a href="#" @click.stop.prevent="confirmDelete(row.item)">Delete</a>
+          </span>
         </div>
       </template>
 
@@ -250,16 +256,29 @@
     <p>Proceed?</p>
   </b-modal>
 
+  <!-- Edit Modal -->
+  <b-modal id="edit-modal" title="Edit Document"
+    v-model="showEditModal"
+    ok-variant="success" ok-title="Save"
+    @ok="updateRecord()">
+    <b-form-textarea
+      id="textarea"
+      v-model="editItem"
+      placeholder="Enter something..."
+      rows="8"
+      max-rows="6"
+    ></b-form-textarea>
+  </b-modal>
+
   <!-- Delete Confirmation Modal -->
   <b-modal id="delete-confirmation-modal" title="Confirmation"
     v-model="showDeleteModal"
     ok-variant="danger" ok-title="Delete"
     @ok="deleteRecord()">
-    <p>
-      This will delete below record. 
+    <p class="font-weight-bold">
+      This will delete below record. Proceed?
     </p>
-    <p>Proceed?</p>
-    <pre v-highlightjs><code class="json">{{ JSON.stringify(deleteItem, null, 2) }}</code></pre>
+    <pre v-highlightjs style="height: 11em;"><code class="json">{{ JSON.stringify(deleteItem, null, 2) }}</code></pre>
   </b-modal>
 
 </div>
@@ -273,7 +292,7 @@ import ConfigService from '../ConfigService';
 import _ from 'lodash';
 import moment from 'moment';
 import BreadcrumbComponent from './BreadcrumbComponent';
-
+import { EJSON } from 'bson';
 
 export default {
 
@@ -287,16 +306,18 @@ export default {
       showInsertModal: false,
       showSearchModal: false,
       showShortcutsModal: false,
+      showEditModal: false,
       showDeleteModal: false,
       isCollEmpty: false,
       displayCollection: '',
       search_text: '',
       query_text: '',
       deleteItem: null,
+      editItem: null,
       insertItem: null,
       insertError: false,
       searchError: false,
-      // records: [],
+      records: [],
       fields: null,
       perPage: 20,
       totalRows: 2000,
@@ -340,10 +361,12 @@ export default {
     let authUser = ConfigService.get('authUser');
     if(authUser.role === 'admin') {
       this.is_allowed_delete = true;
+      this.is_allowed_edit = true;
     }
   },
 
   watch: {
+    
     totalRows(val) {
       if(val > 1000 && val < 1000000) {
         this.displayTotal = Math.floor(val/1000) + 'k';
@@ -355,9 +378,11 @@ export default {
         this.displayTotal = '' + val;
       }
     },
+    
     perPage(val) {
       ConfigService.set('perPage', val);
     },
+
   },
 
   methods: {
@@ -369,7 +394,8 @@ export default {
     async records_fn(ctx) {
       ctx.query = this.query;
       let result = await MongoService.records(this.connection, this.database, this.collection, ctx);
-      let records = result.records;
+      this.records = result.records; 
+      let records = this.records.map(r => EJSON.deserialize(r));
       this.totalRows = result.count;
       this.isCollEmpty = !records.length;
       return records;
@@ -432,6 +458,40 @@ export default {
       return fields;
     },
 
+    // Edit Dialog
+    showEdit(row) {
+      let ejson_item = this.records[row.index];
+      this.editItem = JSON.stringify(ejson_item, null, 4);
+      this.showEditModal = true;
+    },
+
+    async updateRecord() {
+      this.editError = false;
+
+      // Get Item - Check for Errors
+      let changes;
+      try {
+        changes = JSON.parse(this.editItem);
+      }
+      catch(err) {
+        this.editError = true;
+        return;
+      }
+      if(!changes || !changes._id) {
+        this.editError = true;
+        return;
+      }
+
+      // Call API
+      let query = { _id : changes._id };
+      delete(changes._id);
+      changes = { '$set': changes };
+
+      await MongoService.post(this, 'update_documents', { query, changes });
+      this.reload();
+
+    },
+
     async clearCollection() {
       await MongoService.clear(this.connection, this.database, this.collection);
       this.reload();
@@ -449,7 +509,7 @@ export default {
 
     async deleteRecord() {
       let query = { _id: { "$oid" : this.deleteItem._id } };
-      await MongoService.deleteRecords(this.connection, this.database, this.collection, query);
+      await MongoService.post(this, 'delete_records', { query });
       this.reload();
     },
 
@@ -540,7 +600,7 @@ export default {
         query = {};
       }
       this.showSearchModal = false;
-      let result = await MongoService.deleteRecords(this.connection, this.database, this.collection, query);
+      let result = await MongoService.post(this, 'delete_records', { query });
       this.$bvToast.toast(`${result.count} records deleted`, {
         title: 'Success',
         variant: 'success',
