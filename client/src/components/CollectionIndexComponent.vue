@@ -260,14 +260,27 @@
   <b-modal id="edit-modal" title="Edit Document"
     v-model="showEditModal"
     ok-variant="success" ok-title="Save"
-    @ok="updateRecord()">
-    <b-form-textarea
-      id="textarea"
-      v-model="editItem"
-      placeholder="Enter something..."
-      rows="8"
-      max-rows="6"
-    ></b-form-textarea>
+    @ok="updateRecord">
+
+    <div>
+      <b-textarea
+        id="textarea"
+        v-model="editItem"
+        :class="{ 'is-invalid': editError  }"
+        rows="8"
+        autofocus></b-textarea>
+    </div>
+    <div class="row">
+      <div class="col text-danger" v-if="editError">
+        Invalid JSON.
+      </div>
+      <div class="col text-right">
+        <a class="small my-2" href="https://docs.mongodb.com/manual/reference/mongodb-extended-json/#example" target="_blank">
+          EJSON Format <i class="fa fa-external-link-alt"></i>
+        </a>
+      </div>
+    </div>
+
   </b-modal>
 
   <!-- Delete Confirmation Modal -->
@@ -317,6 +330,7 @@ export default {
       insertItem: null,
       insertError: false,
       searchError: false,
+      editError: false,
       records: [],
       fields: null,
       perPage: 20,
@@ -462,10 +476,12 @@ export default {
     showEdit(row) {
       let ejson_item = this.records[row.index];
       this.editItem = JSON.stringify(ejson_item, null, 4);
+      this.editError = false;
       this.showEditModal = true;
     },
 
-    async updateRecord() {
+    async updateRecord(event) {
+
       this.editError = false;
 
       // Get Item - Check for Errors
@@ -475,10 +491,12 @@ export default {
       }
       catch(err) {
         this.editError = true;
+        event.preventDefault();
         return;
       }
       if(!changes || !changes._id) {
         this.editError = true;
+        event.preventDefault()
         return;
       }
 
