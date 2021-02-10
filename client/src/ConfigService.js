@@ -8,7 +8,10 @@ const ConfigService = {
     // Get Collections
     get(key) {
         const defaults = {
-            'collection_display': 'name'
+            collection_display: 'name',
+            uiSettings : {
+                stickyTableHeight: '80vh',
+            },
         };
         let result = Vue.$storage.get(key);
         result = result || defaults[key];
@@ -16,7 +19,7 @@ const ConfigService = {
     },
 
     set(key, val, options = {}) {
-        options.ttl = options.ttl || 24*36*1000;
+        options.ttl = options.ttl || 24*3600*1000;
         Vue.$storage.set(key, val, options);
     },
 

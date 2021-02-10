@@ -6,7 +6,7 @@
   <div class="container">
     <div class="row my-3">
       <div class="col h4">
-        Client Settings
+        UI Settings
       </div>
     </div>
   </div>
@@ -28,14 +28,15 @@
 
     <div class="row">
       <div class="col">
-        Records Display Default (TBD)
+        Sticky Table Height
       </div>
-      <div class="col">
-        <input type="radio" value="table" v-model="records_display_default" />&nbsp;
-        <label for="one">Tabular</label>
-        <br />
-        <input type="radio" value="json" v-model="records_display_default" />&nbsp;
-        <label for="two">JSON</label>
+      <div class="col p-1">
+        <b-form-input v-model="uiSettings.stickyTableHeight" />&nbsp;
+        <div>
+          Height of Sticky Table as Valid CSS.<br/>
+          To turn off Sticky Table, enter "false".<br/>
+          Default: "80vh"
+        </div>
       </div>
     </div>
 
@@ -96,19 +97,22 @@ export default {
     return {
       collection_display: '',
       records_display_default: '',
-      serverSettings: {}
+      serverSettings: {},
+      uiSettings: {},
     }
   },
 
   async created () {
     this.collection_display = ConfigService.get('collection_display') || 'name';
     this.records_display_default = ConfigService.get('records_display_default') || 'table';
+    this.uiSettings = ConfigService.get('uiSettings');
     await this.loadServerSettings();
   },
   
   methods: {
 
     saveClientSettings() {
+      ConfigService.set('uiSettings', this.uiSettings);
       ConfigService.set('collection_display', this.collection_display);
       ConfigService.set('records_display_default', this.records_display_default);
     },

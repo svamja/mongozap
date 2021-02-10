@@ -3,7 +3,8 @@
 
 <div class="container">
 
-  <div class="row">
+  <!-- Breadcrumb, Shortcuts, Pagination -->
+  <div class="row mb-3">
 
     <!-- Breadcrumb -->
     <div class="col-auto">
@@ -75,15 +76,34 @@
 
   </div>
 
+  <div class="row text-warning" v-if="schemaWarning">
+    <div class="col">
+      Schema Warning: To enable better viewing, update schema of this table
+      <router-link :to="`/coll/${connection}/${database}/${collection}/schema`">
+        here
+      </router-link>
+    </div>
+  </div>
+
   <!-- Table -->
-  <b-table id="records_table" ref="bv_table" bordered small
+  <b-table id="records_table" ref="bv_table"
+    bordered small :sticky-header="stickyHeader"
+    header-variant="light"
     :items="records_fn"
     :fields="fields"
     :current-page="currentPage"
     :per-page="perPage">
 
-      <template v-slot:cell(_id)="row">
-        <div @click="row.toggleDetails" class="id-field">{{ row.item._id }}</div>
+      <template #cell(_id)="row">
+        <div @click="row.toggleDetails" class="link-display"> 
+          {{ row.value }}
+        </div>
+      </template>
+
+      <template #cell(toggler)="row">
+        <div @click="row.toggleDetails" class="link-display"> 
+          {{ perPage*(currentPage - 1) + row.index + 1}}
+        </div>
       </template>
 
       <template v-slot:row-details="row">
@@ -330,7 +350,9 @@ export default {
       showShortcutsModal: false,
       showEditModal: false,
       showDeleteModal: false,
+      stickyHeader: '80vh',
       isCollEmpty: false,
+      schemaWarning: false,
       displayCollection: '',
       search_text: '',
       query_text: '',
@@ -342,7 +364,7 @@ export default {
       editError: false,
       records: [],
       fields: null,
-      perPage: 20,
+      perPage: 100,
       totalRows: 2000,
       displayTotal: '100+',
       currentPage: 1,
@@ -356,6 +378,13 @@ export default {
     this.database = this.$route.params.database;
     this.collection = this.$route.params.collection;
     const displayField = ConfigService.get('collection_display');
+    let uiSettings = ConfigService.get('uiSettings');
+    if(!uiSettings.stickyTableHeight || uiSettings.stickyTableHeight == 'false') {
+      this.stickyHeader = false;
+    }
+    else {
+      this.stickyHeader = uiSettings.stickyTableHeight;
+    }
     if(displayField == 'name') {
       this.displayCollection = this.collection;
     }
@@ -380,6 +409,12 @@ export default {
     if(perPage) {
       this.perPage = perPage;
     }
+    if(fields) {
+      fields.unshift({ key: 'toggler', label: '#' });
+    }
+    else {
+      this.schemaWarning = true;
+    }
     this.fields = fields;
     let authUser = ConfigService.get('authUser');
     if(authUser.role === 'admin') {
@@ -403,7 +438,7 @@ export default {
     },
     
     perPage(val) {
-      ConfigService.set('perPage', val);
+      ConfigService.set('perPage', val, { ttl: 365*24*3600*1000 });
     },
 
   },
@@ -660,13 +695,7 @@ td {
   white-space: nowrap;
 }
 
-/*td:hover {
-    overflow: visible; 
-    white-space: normal;
-    height:auto;
-}*/
-
-.id-field {
+.link-display {
   color: var(--primary);
   cursor: pointer;
 }
@@ -674,6 +703,18 @@ td {
 #edit_textarea, #insert_textarea {
   font-family: Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
   font-size: 0.8rem;
+}
+
+/* Fix for showing Scrollbars for OS X for Sticky header table */
+::-webkit-scrollbar {
+  -webkit-appearance: none;
+  width: 7px;
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 4px;
+  background-color: rgba(0, 0, 0, .5);
+  box-shadow: 0 0 1px rgba(255, 255, 255, .5);
 }
 
 </style>

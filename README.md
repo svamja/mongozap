@@ -10,8 +10,6 @@ MongoDB GUI Client, geared towards faster productivity
 * filtering by fields + raw query
 * manage indexes
 
-more to come..
-
 Single Page Application architecture using VueJS and NodeJS.
 
 ## Getting Started

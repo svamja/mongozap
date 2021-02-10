@@ -26,7 +26,7 @@
 
   <!-- Filtered Collections  -->
   <div class="row">
-    <div class="col-md-3 col-sm-6" v-for="collection in filtered_collections"
+    <div class="col-md-4 col-sm-6" v-for="collection in filtered_collections"
       :key="collection.name">
       <router-link :to="`/coll/${connection}/${database}/${collection.name}/index`">
         {{ collection.displayName }}

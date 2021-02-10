@@ -1,6 +1,9 @@
 .env
 /node_modules
 
+# Google Credentials, Tokens
+.google*.json
+
 # Editor Files
 *.code-workspace
 *.sublime-*
