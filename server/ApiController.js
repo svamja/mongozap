@@ -392,6 +392,19 @@ const ApiController = {
         res.json({ status: 'success' });
     },
 
+    async google_auth(req, res) {
+        const code = req.body.code || req.query.code;
+        console.log('google auth', code && code.substring(0, 10));
+        const Google = require('google-api-wrapper');
+        const path = require('path');
+        const base_path = path.resolve(__dirname, '..');
+        const cred_path = base_path + '/.google_client.json';
+        Google.loadCredFile(cred_path);
+        const token = await Google.retrieveToken(code);
+        //TODO: store the token under logged in user
+        res.json({ status: 'success' });
+    },
+
 };
 
 module.exports = ApiController;
