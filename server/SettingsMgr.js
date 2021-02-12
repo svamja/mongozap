@@ -5,6 +5,7 @@ const SettingsMgr = {
     settings: {
       default_connection: process.env.DEFAULT_CONNECTION,
       mongozap_database: process.env.MONGOZAP_DATABASE,
+      google_client_id: process.env.GOOGLE_CLIENT_ID,
       connections: [],
     },
 

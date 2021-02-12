@@ -24,12 +24,12 @@ const ConfigService = {
     },
 
     async getServerSettings() {
-      this.serverSettings = await MongoService.getServerSettings();
+      this.serverSettings = await MongoService.get({}, 'settings_get');
       return this.serverSettings;
     },
 
     async setServerSettings(settings) {
-        this.serverSettings = await MongoService.setServerSettings(settings);
+        this.serverSettings = await MongoService.post({}, 'settings_set', { settings });
     },
 
     async setConnections(connections) {

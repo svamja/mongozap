@@ -115,14 +115,6 @@ class MongoService {
         return await this.api_call('delete', '/collection/indexes', { connection_id, db, coll, index_name });
     }
 
-    static async getServerSettings() {
-        return await this.api_call('get', '/settings/get');
-    }
-
-    static async setServerSettings(settings) {
-        return await this.api_call('post', '/settings/set', { settings });
-    }
-
     static async fetchDbInfo(connection_id, db) {
         return await this.api_call('get', '/db/info', { connection_id, db });
     }

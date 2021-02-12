@@ -392,18 +392,48 @@ const ApiController = {
         res.json({ status: 'success' });
     },
 
-    async google_auth(req, res) {
+    async google_auth_complete(req, res) {
+        const fs = require('fs');
+        const { google } = require('googleapis');
         const code = req.body.code || req.query.code;
-        console.log('google auth', code && code.substring(0, 10));
-        const Google = require('google-api-wrapper');
         const path = require('path');
         const base_path = path.resolve(__dirname, '..');
-        const cred_path = base_path + '/.google_client.json';
-        Google.loadCredFile(cred_path);
-        const token = await Google.retrieveToken(code);
-        //TODO: store the token under logged in user
-        res.json({ status: 'success' });
-    },
+        const cred_path = base_path + '/.google_credentials.json';
+        const content = fs.readFileSync(cred_path);
+        const cred = JSON.parse(content);
+        const { client_secret, client_id, redirect_uris } = cred.web;
+        // const redirect_uri = process.env.GOOGLE_REDIRECT_URI;
+        const redirect_uri = process.env.BASE_URL + '/api/google/auth/complete';
+
+        console.log(client_id.substring(0, 10), redirect_uri);
+        const auth = new google.auth.OAuth2(
+            client_id, client_secret, redirect_uri
+        );
+        const { tokens } = await auth.getToken(code);
+        console.log('token obtained');
+
+        // Set Credentials to auth
+        auth.setCredentials(tokens);
+
+        //TODO: Save the Tokens to "users" Collection
+
+        // Save the Token
+        const token_path = base_path + '/.google_token.json';
+        fs.writeFileSync(token_path, JSON.stringify(tokens, null, 4));
+
+        // Try out the auth
+        const sheets = google.sheets({ version: 'v4', auth});
+        let sheet_response = await sheets.spreadsheets.values.get({
+            spreadsheetId: '1S8Vcdp3gxF3sBNZKm-FpnlYlgP8XAPcahPOVHvj_Dc8',
+            range: 'Sheet1',
+        });
+        const rows = sheet_response.data.values;
+        console.log(rows[0]);
+
+        // Redirect to Settings
+        res.redirect('/#/settings');
+
+    }
 
 };
 

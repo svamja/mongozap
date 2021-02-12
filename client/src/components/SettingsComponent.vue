@@ -81,6 +81,17 @@
       </div>
     </div>
 
+    <div class="row">
+      <div class="col">
+        Google Client Id
+        <div class="small">process.env.GOOGLE_CLIENT_ID <br/> (see .env file)</div>
+      </div>
+      <div class="col p-1">
+        <b-form-input v-model="serverSettings.google_client_id" readonly></b-form-input>
+      </div>
+    </div>
+
+
   </div>
 
   <!-- Miscellaneous Settings -->
@@ -99,7 +110,7 @@
       </div>
       <div class="col p-1">
         <div id="google-signin-button"></div>
-        <button id="signinButton" @click="googleSignInClick">Sign in with Google</button>
+        <a :href="googleLoginUrl">Google Connect</a>
 
       </div>
     </div>
@@ -114,6 +125,7 @@
 
 import ConfigService from '../ConfigService';
 import MongoService from '../MongoService';
+import queryString from 'query-string';
 
 
 export default {
@@ -125,11 +137,8 @@ export default {
       serverSettings: {},
       uiSettings: {},
       auth2: null,
+      googleLoginUrl: '',
     }
-  },
-
-  mounted() {
-    window.addEventListener('gapiloadevent', this.gapiLoaded, false);
   },
 
   async created () {
@@ -137,6 +146,7 @@ export default {
     this.records_display_default = ConfigService.get('records_display_default') || 'table';
     this.uiSettings = ConfigService.get('uiSettings');
     await this.loadServerSettings();
+    this.google_auth_init();
   },
   
   methods: {
@@ -151,29 +161,20 @@ export default {
       this.serverSettings = await ConfigService.getServerSettings();
     },
 
-    gapiLoaded(e) {
-
-      const scope = [
-        'profile', 'email',
-        'https://www.googleapis.com/auth/drive',
-        'https://www.googleapis.com/auth/spreadsheets',
-      ].join(' ');
-      const client_id = process.env.GOOGLE_CLIENT_ID;
-
-      window.gapi.load('auth2', function() {
-        window.auth2 = window.gapi.auth2.init({ client_id, scope });
+    google_auth_init() {
+      const domain = window.location.href.split('/').slice(0, 3).join('/')
+      const stringifiedParams = queryString.stringify({
+        client_id: this.serverSettings.google_client_id,
+        redirect_uri: domain + '/api/google/auth/complete',
+        scope: [
+          'https://www.googleapis.com/auth/drive',
+          'https://www.googleapis.com/auth/spreadsheets',
+        ].join(' '),
+        response_type: 'code',
+        access_type: 'offline',
       });
-
+      this.googleLoginUrl = `https://accounts.google.com/o/oauth2/v2/auth?${stringifiedParams}`;
     },
-
-    googleSignInClick() {
-      window.auth2.grantOfflineAccess().then(this.onGoogleSignIn);
-    },
-
-    async onGoogleSignIn (authResult) {
-      const code = authResult.code;
-      const result = await MongoService.post(this, 'google_auth', { code });
-    }
 
   },
 
