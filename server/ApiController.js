@@ -9,8 +9,10 @@ const ApiController = {
 
     async api(req, res) {
         let fn_name = req.params.fn_name;
-        console.log('api: ', fn_name);
-        return await ApiController[fn_name](req, res);
+        console.time('api: ' + fn_name);
+        const result = await ApiController[fn_name](req, res);
+        console.timeEnd('api: ' + fn_name);
+        return result;
     },
 
     async login(req, res) {
@@ -467,6 +469,57 @@ const ApiController = {
         else {
             res.json({ status: 'error' });
         }
+    },
+
+    async export_sheet(req, res) {
+        const Google = require('google-api-wrapper');
+        const moment = require('moment');
+
+        const connection_url = req.query.connection_url || req.body.connection_url;
+        const db = req.query.db || req.body.db;
+        const coll = req.query.coll || req.body.coll;
+        const query = req.body.query || req.query.query;
+        const fields = req.body.fields || req.query.fields;
+
+        // Get Collection
+        const Model = await Mongo.get(connection_url, db, coll);
+        const date_time = moment().format('YYYY-MM-DD-HHmm');
+
+        // Initialize Google APIs
+        const path = require('path');
+        const base_path = path.resolve(__dirname, '..');
+        const cred_path = base_path + '/.google_credentials.json';
+        const token_path = base_path + '/.google_token.json';
+        Google.loadCredFile(cred_path);
+        Google.loadTokenFile(token_path);
+
+        // Get Sheet
+        const sheet = Google.getSheet();
+        await sheet.create(`${coll} export ${date_time}`);
+        await sheet.write(fields);
+
+        // Write to Sheet
+        let chunks = await Model.chunks(query);
+        let count = 0;
+        for await(let docs of chunks) {
+            for(let doc of docs) {
+                let row = [];
+                for(let field of fields) {
+                    let value = _.get(doc, field);
+                    if(_.isPlainObject(value) || _.isArray(value)) {
+                        value = JSON.stringify(value);
+                    }
+                    row.push(value);
+                }
+                await sheet.write(row);
+                count++;
+            }
+        }
+
+        // End Write
+        await sheet.endWrite();
+
+        res.json({ status: 'success', count });
     },
 
 };

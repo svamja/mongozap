@@ -121,6 +121,10 @@
 
   </b-table>
 
+  <div>
+    <a href="#" @click.prevent.stop="export_sheet">Export (Google Sheet)</a>
+  </div>
+
   <!-- Empty Table  -->
   <div v-if="isCollEmpty">
     <div class="row">
@@ -669,6 +673,15 @@ export default {
       });
       this.query = null;
       this.$root.$emit('bv::refresh::table', 'records_table');
+    },
+
+    async export_sheet() {
+      const query = this.query;
+      let fields = _.map(this.fields, 'key');
+      if(fields[0] == 'toggler') {
+        fields.shift();
+      }
+      await MongoService.post(this, 'export_sheet', { fields, query });
     },
 
   }
