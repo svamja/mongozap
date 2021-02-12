@@ -529,27 +529,24 @@ export default {
       this.editError = false;
 
       // Get Item - Check for Errors
-      let changes;
+      let doc;
       try {
-        changes = JSON.parse(this.editItem);
+        doc = JSON.parse(this.editItem);
       }
       catch(err) {
         this.editError = true;
         event.preventDefault();
         return;
       }
-      if(!changes || !changes._id) {
+      if(!doc || !doc._id) {
         this.editError = true;
         event.preventDefault()
         return;
       }
 
       // Call API
-      let query = { _id : changes._id };
-      delete(changes._id);
-      changes = { '$set': changes };
-
-      await MongoService.post(this, 'update_documents', { query, changes });
+      let query = { _id : doc._id };
+      await MongoService.post(this, 'replace_document', { query, doc });
       this.reload();
 
     },

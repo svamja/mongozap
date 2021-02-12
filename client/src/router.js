@@ -20,6 +20,7 @@ import CollectionFieldsComponent from './components/CollectionFieldsComponent';
 import SettingsComponent from './components/SettingsComponent';
 import UsersComponent from './components/UsersComponent';
 import LoginComponent from './components/LoginComponent';
+import GoogleAuthComponent from './components/GoogleAuthComponent';
 
 Vue.use(Router);
 
@@ -35,6 +36,7 @@ const router = new Router({
     { path: '/coll/:connection/:database/:collection/fields', component: CollectionFieldsComponent },
     { path: '/coll/:connection/:database/:collection/indexes', component: CollectionIndexesComponent },
     { path: '/settings', component: SettingsComponent },
+    { path: '/google/auth/complete', component: GoogleAuthComponent },
     { path: '/users', component: UsersComponent },
     {
       path: '/login',

@@ -3,6 +3,7 @@ const SchemaMgr = require('./SchemaMgr');
 const SettingsMgr = require('./SettingsMgr');
 const { EJSON } = require('bson');
 const _ = require('lodash');
+const jwt = require('jsonwebtoken');
 
 const ApiController = {
 
@@ -18,41 +19,45 @@ const ApiController = {
         const username = req.query.username || req.body.username;
         const password = req.query.password || req.body.password;
 
-        let status, user;
+        let status, user, token;
         let allow_default_login = process.env.ALLOW_DEFAULT_LOGIN &&
             (process.env.ALLOW_DEFAULT_LOGIN.toLowerCase() === 'yes' ||
                 process.env.ALLOW_DEFAULT_LOGIN.toLowerCase() === 'y' ||
                 parseInt(process.env.ALLOW_DEFAULT_LOGIN) === 1);
 
+        // check default credentials
         if(allow_default_login) {
-            // default credentials
             let default_user = process.env.DEFAULT_USERNAME || 'admin';
             let default_password = process.env.DEFAULT_PASSWORD || 'admin';
             let default_role = process.env.DEFAULT_ROLE || 'admin';
 
             // check default username & password
             if(default_user === username && default_password === password) {
-                status = 'success';
                 user = { username, role: default_role, is_default: true };
-                res.json({ status: 'success', user });
-                return;
             }
         }
 
         // check from database 
-        const connection_url = SettingsMgr.settings.default_connection;
-        const db = SettingsMgr.settings.mongozap_database;
-        const coll = 'users';
-        const Users = await Mongo.get(connection_url, db, coll);
-        const hashed_password = ApiController.hash_password(password);
-        user = await Users.findOne({ username, password: hashed_password });
+        if(!user) {
+            const connection_url = SettingsMgr.settings.default_connection;
+            const db = SettingsMgr.settings.mongozap_database;
+            const coll = 'users';
+            const Users = await Mongo.get(connection_url, db, coll);
+            const hashed_password = ApiController.hash_password(password);
+            const db_user = await Users.findOne({ username, password: hashed_password });
+            user = { username: db_user.username, role: db_user.role, is_default: false };
+        }
+
         if(user) {
-            status = 'success';
+            token = jwt.sign(user, process.env.MONGOZAP_SECRET, {
+              expiresIn: 30*86400 // expires in 30 days
+            });
         }
-        else {
-            status = 'error';
-        }
-        res.json({ status, user });
+
+        // response
+        status = user ? 'success' : 'error';
+        res.json({ status, user, token });
+
     },
 
     async add_user(req, res) {
@@ -282,6 +287,24 @@ const ApiController = {
         res.json({ status: 'success', count: result.modifiedCount });
     },
 
+    async replace_document(req, res) {
+        const { EJSON } = require('bson');
+
+        // Get Collection
+        const connection_url = req.query.connection_url || req.body.connection_url;
+        const db = req.query.db || req.body.db;
+        const coll = req.query.coll || req.body.coll;
+        let query = req.query.query || req.body.query;
+        let doc = req.query.doc || req.body.doc;
+
+        // Replace (save) document
+        const Model = await Mongo.get(connection_url, db, coll);
+        query = EJSON.deserialize(query);
+        doc = EJSON.deserialize(doc);
+        let result = await Model.replaceOne(query, doc);
+        res.json({ status: 'success', count: result.modifiedCount });
+    },
+
     async delete_records(req, res) {
         const { EJSON } = require('bson');
 
@@ -412,28 +435,39 @@ const ApiController = {
         const { tokens } = await auth.getToken(code);
         console.log('token obtained');
 
-        // Set Credentials to auth
-        auth.setCredentials(tokens);
-
         //TODO: Save the Tokens to "users" Collection
 
         // Save the Token
         const token_path = base_path + '/.google_token.json';
         fs.writeFileSync(token_path, JSON.stringify(tokens, null, 4));
 
-        // Try out the auth
-        const sheets = google.sheets({ version: 'v4', auth});
-        let sheet_response = await sheets.spreadsheets.values.get({
-            spreadsheetId: '1S8Vcdp3gxF3sBNZKm-FpnlYlgP8XAPcahPOVHvj_Dc8',
-            range: 'Sheet1',
-        });
-        const rows = sheet_response.data.values;
-        console.log(rows[0]);
-
         // Redirect to Settings
-        res.redirect('/#/settings');
+        res.redirect('/#/google/auth/complete');
 
-    }
+    },
+
+    async save_token(req, res) {
+        const fs = require('fs');
+        const path = require('path');
+        const username = req.body.username || req.query.username;
+        const base_path = path.resolve(__dirname, '..');
+        const token_path = base_path + '/.google_token.json';
+        const token = JSON.parse(fs.readFileSync(token_path));
+        const connection_url = SettingsMgr.settings.default_connection;
+        const db = SettingsMgr.settings.mongozap_database;
+        const Users = await Mongo.get(connection_url, db, 'users');
+        const user = await Users.findOne({ username });
+        if(user) {
+            await Users.updateOne(
+                { _id: user._id },
+                { '$set':  { google_token: token } }
+            );
+            res.json({ status: 'success' });
+        }
+        else {
+            res.json({ status: 'error' });
+        }
+    },
 
 };
 

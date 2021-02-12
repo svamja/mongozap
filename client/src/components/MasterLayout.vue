@@ -81,6 +81,7 @@ export default {
   methods: {
     async logout() {
       this.$storage.remove('authUser');
+      this.$storage.remove('token');
       this.$router.push('/login');
       window.location.reload();
     }

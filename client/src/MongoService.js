@@ -16,6 +16,8 @@ class MongoService {
         let res;
         let url = baseUrl + path;
 
+        this.add_token(params);
+
         if(method == 'get') {
             let data = { params };
             res = await axios.get(url, data);
@@ -27,6 +29,12 @@ class MongoService {
             res = await axios.delete(url, { data: params });
         }
         return res.data;
+    }
+
+    static add_token(params) {
+        const token = ConfigService.get('token');
+        params.token = token;
+        return params;
     }
 
     static async api(caller, method, fn_name, params = {}) {
@@ -125,10 +133,6 @@ class MongoService {
 
     static async delete_records(connection_id, db, coll, query) {
         return await this.api_call('post', '/api/delete_records', { connection_id, db, coll, query });
-    }
-
-    static async login(username, password) {
-        return await this.api_call('post', '/login', { username, password });
     }
 
     static async add_user(username, password, role) {

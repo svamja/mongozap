@@ -78,8 +78,10 @@ export default {
 
     async login() {
       let authUser = { username: this.username };
-      let result = await MongoService.login(this.username, this.password);
+      let result = await MongoService.post(this, 'login', { username: this.username, password: this.password });
+      console.log('login result', result);
       if(result.status == 'success' && result.user) {
+        ConfigService.set('token', result.token, { ttl: 30*24*3600*1000 });
         ConfigService.set('authUser', result.user, { ttl: 30*24*3600*1000 });
         window.location = '/login';
       }
