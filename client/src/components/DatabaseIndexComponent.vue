@@ -8,8 +8,8 @@
       <b-button variant="link">{{ database }}</b-button>
       <span class="text-muted">/</span>
       <b-dropdown id="dropdown-dropright" dropright text="Collections" variant="muted" class="text-muted">
-        <b-dropdown-item :to="`/db/${connection}/${database}/home`">Home</b-dropdown-item>
         <b-dropdown-item :to="`/db/${connection}/${database}/index`">Collections</b-dropdown-item>
+        <b-dropdown-item :to="`/db/${connection}/${database}/home`">Stats</b-dropdown-item>
         <b-dropdown-item href="#" v-b-modal.new-collection-modal>New Collection</b-dropdown-item>
       </b-dropdown>
     </div>

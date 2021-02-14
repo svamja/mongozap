@@ -16,9 +16,6 @@ router.get('/collections', ApiController.collections);
 router.get('/collection/index', ApiController.collection_index);
 router.post('/collection/index', ApiController.collection_index);
 
-// Insert
-router.post('/collection/insert', ApiController.collection_insert);
-
 // Clear & Drop
 router.post('/collection/clear', ApiController.collection_clear);
 router.post('/collection/drop', ApiController.collection_drop);

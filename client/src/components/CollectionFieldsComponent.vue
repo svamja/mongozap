@@ -93,7 +93,7 @@
     <div class="container table-container my-3">
 
       <draggable v-model="items" @start="drag=true" @end="drag=false">
-        <div class="row py-1" v-for="(item, i) of items" :key="item">
+        <div class="row py-1" v-for="(item, i) of items" :key="item.key">
           <div class="col-3"> {{ item.key }} </div>
           <div class="col-3"> {{ item.label }} </div>
           <div class="col-3"> {{ item.formatter }} </div>

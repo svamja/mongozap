@@ -8,9 +8,9 @@
       <div class="col">
         <b-button variant="link" :to="`/db/${connection}/${database}/index`">{{ database }}</b-button>
         <span class="text-muted">/</span>
-        <b-dropdown id="dropdown-dropright" dropright text="Home" variant="muted" class="text-muted">
-          <b-dropdown-item :to="`/db/${connection}/${database}/home`">Home</b-dropdown-item>
+        <b-dropdown id="dropdown-dropright" dropright text="Stats" variant="muted" class="text-muted">
           <b-dropdown-item :to="`/db/${connection}/${database}/index`">Collections</b-dropdown-item>
+          <b-dropdown-item :to="`/db/${connection}/${database}/home`">Stats</b-dropdown-item>
         </b-dropdown>
       </div>
     </div>
@@ -41,9 +41,6 @@
       <div class="col"> Schema Present </div>
       <div class="col">
         {{ stats.schema_count }} / {{ stats.collections }}
-        <a href="#" class="ml-2">
-          Run Schema Task
-        </a>
       </div>
     </div>
   </div>

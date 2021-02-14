@@ -127,14 +127,6 @@ class MongoService {
         return await this.api_call('get', '/db/info', { connection_id, db });
     }
 
-    static async insertDoc(connection_id, db, coll, doc) {
-        return await this.api_call('post', '/collection/insert', { connection_id, db, coll, doc });
-    }
-
-    static async delete_records(connection_id, db, coll, query) {
-        return await this.api_call('post', '/api/delete_records', { connection_id, db, coll, query });
-    }
-
     static async add_user(username, password, role) {
         return await this.api_call('post', '/add_user', { username, password, role });
     }

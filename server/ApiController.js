@@ -15,6 +15,35 @@ const ApiController = {
         return result;
     },
 
+    async init_request(req) {
+
+        // Core Params
+        let connection_url = req.query.connection_url || req.body.connection_url;
+        let db = req.query.db || req.body.db;
+        let coll = req.query.coll || req.body.coll;
+
+        // "mongozap" Special Database
+        db = db === '_mongozap' ? process.env.MONGOZAP_DATABASE : db;
+
+        // Model
+        let Model;
+        if(connection_url && db && coll) {
+            Model = await Mongo.get(connection_url, db, coll);
+        }
+
+        // Query
+        let query = req.query.query || req.body.query;
+        if(query) {
+            query = EJSON.deserialize(query);        
+        }
+
+        // Fields
+        let fields = req.body.fields || req.query.fields;
+
+        return { connection_url, db, coll, Model, query, fields };
+
+    },
+
     async login(req, res) {
 
         // input credentials
@@ -255,18 +284,22 @@ const ApiController = {
         return this.last_schema;
     },
 
-    async collection_insert(req, res) {
+    async insert_documents(req, res) {
         const { EJSON } = require('bson');
 
         // Get Collection
         const connection_url = req.query.connection_url || req.body.connection_url;
-        const db = req.query.db || req.body.db;
+        let db = req.query.db || req.body.db;
         const coll = req.query.coll || req.body.coll;
         let docs = req.query.doc || req.body.docs;
         let doc = req.query.doc || req.body.doc;
         if(doc && !docs) {
             docs = [ doc ];
         }
+        if(db === '_mongozap') {
+            db = process.env.MONGOZAP_DATABASE;
+        }
+
         const Model = await Mongo.get(connection_url, db, coll);
         docs = EJSON.deserialize(docs);
         let result = await Model.insertMany(docs);
@@ -308,15 +341,7 @@ const ApiController = {
     },
 
     async delete_records(req, res) {
-        const { EJSON } = require('bson');
-
-        // Get Collection
-        const connection_url = req.query.connection_url || req.body.connection_url;
-        const db = req.query.db || req.body.db;
-        const coll = req.query.coll || req.body.coll;
-        let query = req.query.query || req.body.query;
-        const Model = await Mongo.get(connection_url, db, coll);
-        query = EJSON.deserialize(query);
+        const { Model, query } = await this.init_request(req);
         let result = await Model.deleteMany(query);
         res.json({ status: 'success', count: result.deletedCount });
     },
@@ -380,6 +405,31 @@ const ApiController = {
         res.json({ status: 'success' });
     },
 
+    async aggregate(req, res) {
+        const connection_url = req.query.connection_url || req.body.connection_url;
+        const db = req.query.db || req.body.db;
+        const coll = req.query.coll || req.body.coll;
+        let pipeline_text = req.query.pipeline || req.body.pipeline;
+        let pipeline;
+        if(!pipeline_text) {
+            return res.json({ status: 'error', items: []});
+        }
+        try {
+            pipeline = JSON.parse(pipeline_text);
+        }
+        catch(err) {}
+        if(!pipeline || !pipeline.length) {
+            return res.json({ status: 'error', items: []});
+        }
+        const Model = await Mongo.get(connection_url, db, coll);
+        let cursor = await Model.aggregate(pipeline);
+        let items = [];
+        for await(let item of cursor) {
+            items.push(item);
+            if(items.length >= 100) break;
+        }
+        return res.json({ status: 'success', items });
+    },
 
     async indexes_get(req, res) {
 
@@ -471,31 +521,32 @@ const ApiController = {
         }
     },
 
-    async export_sheet(req, res) {
+    init_google() {
         const Google = require('google-api-wrapper');
-        const moment = require('moment');
-
-        const connection_url = req.query.connection_url || req.body.connection_url;
-        const db = req.query.db || req.body.db;
-        const coll = req.query.coll || req.body.coll;
-        const query = req.body.query || req.query.query;
-        const fields = req.body.fields || req.query.fields;
-
-        // Get Collection
-        const Model = await Mongo.get(connection_url, db, coll);
-        const date_time = moment().format('YYYY-MM-DD-HHmm');
-
-        // Initialize Google APIs
         const path = require('path');
         const base_path = path.resolve(__dirname, '..');
         const cred_path = base_path + '/.google_credentials.json';
         const token_path = base_path + '/.google_token.json';
         Google.loadCredFile(cred_path);
         Google.loadTokenFile(token_path);
+        return Google;
+    },
+
+    async export_sheet(req, res) {
+        const moment = require('moment');
+
+        // Get Req Params
+        const { coll, Model, query, fields } = await this.init_request(req);
+
+        // Initialize Google APIs
+        const Google = this.init_google();
+
+        // Get Collection
+        const date_time = moment().format('YYYY-MM-DD-HHmm');
 
         // Get Sheet
         const sheet = Google.getSheet();
-        await sheet.create(`${coll} export ${date_time}`);
+        const sheet_id = await sheet.create(`${coll} export ${date_time}`);
         await sheet.write(fields);
 
         // Write to Sheet
@@ -518,9 +569,72 @@ const ApiController = {
 
         // End Write
         await sheet.endWrite();
+        let url = `https://docs.google.com/spreadsheets/d/${sheet_id}`;
 
-        res.json({ status: 'success', count });
+        res.json({ status: 'success', count, url });
     },
+
+    async export_aggregation(req, res) {
+        const moment = require('moment');
+
+        // Get Req Params
+        const { coll, Model } = await this.init_request(req);
+
+        // Initialize Google APIs
+        const Google = this.init_google();
+
+        // Get Collection
+        const date_time = moment().format('YYYY-MM-DD-HHmm');
+
+        // Get Sheet
+        const sheet = Google.getSheet();
+        const sheet_id = await sheet.create(`${coll} aggregation ${date_time}`);
+
+        // Get Pipeline
+        let pipeline;
+        const pipeline_text = req.query.pipeline || req.body.pipeline;
+        if(!pipeline_text) {
+            return res.json({ status: 'error', items: []});
+        }
+        try {
+            pipeline = JSON.parse(pipeline_text);
+        }
+        catch(err) {}
+        if(!pipeline || !pipeline.length) {
+            return res.json({ status: 'error', items: []});
+        }
+
+        let cursor = await Model.aggregate(pipeline);
+        let items = [];
+
+        // Write to Sheet
+        let count = 0;
+        let fields;
+        for await(let doc of cursor) {
+            if(count == 0) {
+                fields = Object.keys(doc);
+                await sheet.write(fields);
+            }
+            let row = [];
+            for(let field of fields) {
+                let value = _.get(doc, field);
+                if(_.isPlainObject(value) || _.isArray(value)) {
+                    value = JSON.stringify(value);
+                }
+                row.push(value);
+            }
+            await sheet.write(row);
+            count++;
+            if(count >= 20000) break;
+        }
+
+        // End Write
+        await sheet.endWrite();
+        let url = `https://docs.google.com/spreadsheets/d/${sheet_id}`;
+
+        res.json({ status: 'success', count, url });
+    },
+
 
 };
 

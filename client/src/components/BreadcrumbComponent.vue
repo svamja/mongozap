@@ -15,6 +15,9 @@
     <b-dropdown-item href="#" :to="`/coll/${connection}/${database}/${collection}/filter`">
       Filter (/)
     </b-dropdown-item>
+    <b-dropdown-item href="#" :to="`/coll/${connection}/${database}/${collection}/aggregate`">
+      Aggregate (a)
+    </b-dropdown-item>
     <b-dropdown-item href="#" :to="`/coll/${connection}/${database}/${collection}/fields`">
       Fields (f)
     </b-dropdown-item>
@@ -52,6 +55,11 @@
   <a v-shortkey.once="['i']" 
     :to="`/coll/${connection}/${database}/${collection}/indexes`"
     @shortkey="gotoShortcut('indexes')" href="#"
+    >
+  </a>
+  <a v-shortkey.once="['a']" 
+    :to="`/coll/${connection}/${database}/${collection}/aggregate`"
+    @shortkey="gotoShortcut('aggregate')" href="#"
     >
   </a>
   <a v-shortkey.once="['s']" 

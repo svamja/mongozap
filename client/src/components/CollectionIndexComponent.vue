@@ -78,7 +78,7 @@
 
   <div class="row text-warning" v-if="schemaWarning">
     <div class="col">
-      Schema Warning: To enable better viewing, update schema of this table
+      Schema Warning: To enable better viewing, update schema of this collection
       <router-link :to="`/coll/${connection}/${database}/${collection}/schema`">
         here
       </router-link>
@@ -121,8 +121,15 @@
 
   </b-table>
 
-  <div>
-    <a href="#" @click.prevent.stop="export_sheet">Export (Google Sheet)</a>
+  <div v-if="!isCollEmpty">
+    <span v-if="!sheet_url">
+      <a href="#" @click.prevent.stop="export_sheet">Export (Google Sheet)</a>
+    </span>
+    <span v-else>
+      <a :href="sheet_url">
+        Sheet URL
+      </a>
+    </span>
   </div>
 
   <!-- Empty Table  -->
@@ -374,6 +381,7 @@ export default {
       currentPage: 1,
       pageOptions: [ 5, 10, 20, 50, 100, 500, 1000, 2000 ],
       is_allowed_delete: false,
+      sheet_url: '',
     }
   },
 
@@ -506,6 +514,7 @@ export default {
         if(sortables[key]) {
           sortable = true;
         }
+        // Convert to Unix/JS Timestamps as per preference
         if(key == 'created' && schema_field.type == 'Number') {
           formatter = 'unix_date_time_formatter';
         }
@@ -581,16 +590,16 @@ export default {
     },
 
     async insertDoc() {
-      let insertItem;
+      let doc;
       this.insertError = false;
       try {
-        insertItem = JSON.parse(this.insertItem);
+        doc = JSON.parse(this.insertItem);
       }
       catch(err) {
         this.insertError = true;
         return;
       }
-      await MongoService.insertDoc(this.connection, this.database, this.collection, insertItem);
+      await MongoService.post(this, 'insert_documents', { doc });
       this.showInsertModal = false;
       this.reload();
     },
@@ -681,7 +690,8 @@ export default {
       if(fields[0] == 'toggler') {
         fields.shift();
       }
-      await MongoService.post(this, 'export_sheet', { fields, query });
+      let result = await MongoService.post(this, 'export_sheet', { fields, query });
+      this.sheet_url = result.url;
     },
 
   }
