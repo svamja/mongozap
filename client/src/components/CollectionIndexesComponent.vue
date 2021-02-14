@@ -118,7 +118,7 @@ export default {
   methods: {
 
     async reload() {
-      this.indexes = await MongoService.getIndexes(this.connection, this.database, this.collection);
+      this.indexes = await MongoService.get(this, 'get_indexes');
       if(!this.indexes || !this.indexes.length) {
         this.isEmpty = true;
       }
@@ -133,7 +133,8 @@ export default {
     },
 
     async deleteIndex() {
-      await MongoService.deleteIndex(this.connection, this.database, this.collection, this.deleteItem.name);
+      const index_name = this.deleteItem.name;
+      await MongoService.post(this, 'delete_index', { index_name });
       this.reload();
     },
 

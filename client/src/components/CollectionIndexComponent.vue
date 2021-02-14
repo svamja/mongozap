@@ -20,7 +20,7 @@
     <!-- Toolbar -->
     <div class="col-auto my-auto pl-0 ml-auto">
 
-      <a v-shortkey.once="['shift', '+']" 
+      <a v-if="is_allowed_edit" v-shortkey.once="['shift', '+']" 
         @shortkey="openInsert()" href="#" @click.stop.prevent="openInsert()"
         v-b-tooltip.hover title="Insert (+)">
         <span class="fa fa-plus"></span>
@@ -113,6 +113,10 @@
             <a href="#" @click.stop.prevent="showEdit(row)">Edit</a>
           </span>
           &nbsp;
+          <span v-if="is_allowed_edit">
+            <a href="#" @click.stop.prevent="duplicate(row)">Duplicate</a>
+          </span>
+          &nbsp;
           <span v-if="is_allowed_delete">
             <a href="#" @click.stop.prevent="confirmDelete(row.item)">Delete</a>
           </span>
@@ -122,14 +126,19 @@
   </b-table>
 
   <div v-if="!isCollEmpty">
-    <span v-if="!sheet_url">
+
+    <span v-if="export_status == 'pending'">
       <a href="#" @click.prevent.stop="export_sheet">Export (Google Sheet)</a>
     </span>
-    <span v-else>
-      <a :href="sheet_url">
-        Sheet URL
+    <span v-else-if="export_status == 'started'">
+      Exporting.. (do not reload page)
+    </span>
+    <span v-else-if="export_status == 'ready'">
+      <a :href="sheet_url" target="_blank">
+        Sheet URL <span class="fa fa-external-link-alt"></span>
       </a>
     </span>
+
   </div>
 
   <!-- Empty Table  -->
@@ -377,11 +386,12 @@ export default {
       fields: null,
       perPage: 100,
       totalRows: 2000,
-      displayTotal: '100+',
       currentPage: 1,
       pageOptions: [ 5, 10, 20, 50, 100, 500, 1000, 2000 ],
+      is_allowed_edit: false,
       is_allowed_delete: false,
       sheet_url: '',
+      export_status: 'pending',
     }
   },
 
@@ -437,22 +447,25 @@ export default {
 
   watch: {
     
-    totalRows(val) {
-      if(val > 1000 && val < 1000000) {
-        this.displayTotal = Math.floor(val/1000) + 'k';
-      }
-      else if(val > 1000000) {
-        this.displayTotal = Math.floor(val/1000000) + 'm';
-      }
-      else {
-        this.displayTotal = '' + val;
-      }
-    },
-    
     perPage(val) {
       ConfigService.set('perPage', val, { ttl: 365*24*3600*1000 });
     },
 
+  },
+
+  computed: {
+    displayTotal() {
+      let val = this.totalRows;
+      if(val > 1000 && val < 1000000) {
+        return Math.floor(val/1000) + 'k';
+      }
+      else if(val > 1000000) {
+        return Math.floor(val/1000000) + 'm';
+      }
+      else {
+        return '' + val;
+      }
+    },
   },
 
   methods: {
@@ -489,7 +502,7 @@ export default {
       }
 
       // Get Indexes
-      const db_indexes = await MongoService.getIndexes(this.connection, this.database, this.collection);
+      const db_indexes = await MongoService.get(this, 'get_indexes');
 
       // Filter to Depth 1
       schema_fields = schema_fields.filter(x => x.depth == 1);
@@ -539,6 +552,7 @@ export default {
 
     async updateRecord(event) {
 
+      this.export_status = 'pending';
       this.editError = false;
 
       // Get Item - Check for Errors
@@ -564,6 +578,16 @@ export default {
 
     },
 
+    // Duplicate
+    duplicate(row) {
+      let ejson_item = this.records[row.index];
+      let doc = Object.assign({}, ejson_item);
+      delete(doc['_id']);
+      this.insertItem = JSON.stringify(doc, null, 4);
+      this.insertError = false;
+      this.showInsertModal = true;
+    },
+
     async clearCollection() {
       await MongoService.clear(this.connection, this.database, this.collection);
       this.reload();
@@ -580,6 +604,7 @@ export default {
     },
 
     async deleteRecord() {
+      this.export_status = 'pending';
       let query = { _id: { "$oid" : this.deleteItem._id } };
       await MongoService.post(this, 'delete_records', { query });
       this.reload();
@@ -590,6 +615,7 @@ export default {
     },
 
     async insertDoc() {
+      this.export_status = 'pending';
       let doc;
       this.insertError = false;
       try {
@@ -630,6 +656,7 @@ export default {
     },
     
     applySearch() {
+      this.export_status = 'pending';
       let query;
       this.searchError = false;
       if(this.query_text && this.query_text.trim()) {
@@ -685,6 +712,7 @@ export default {
     },
 
     async export_sheet() {
+      this.export_status = 'started';
       const query = this.query;
       let fields = _.map(this.fields, 'key');
       if(fields[0] == 'toggler') {
@@ -692,6 +720,7 @@ export default {
       }
       let result = await MongoService.post(this, 'export_sheet', { fields, query });
       this.sheet_url = result.url;
+      this.export_status = 'ready';
     },
 
   }

@@ -83,7 +83,7 @@ export default {
       if(result.status == 'success' && result.user) {
         ConfigService.set('token', result.token, { ttl: 30*24*3600*1000 });
         ConfigService.set('authUser', result.user, { ttl: 30*24*3600*1000 });
-        window.location = '/login';
+        window.location = '/';
       }
       else if(result.status == 'error') {
         this.error = 'Username / Password Invalid';

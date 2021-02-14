@@ -5,14 +5,24 @@
 
   <div class="row">
     <div class="col">
-      <b-button variant="link">{{ database }}</b-button>
+      <b-button variant="link" to="/">conns</b-button>
+      <span class="text-muted">/</span>
+      <b-button variant="link" :to="`/db/${connection}/list`">{{ parseInt(connection) + 1 }} </b-button>
+      <span class="text-muted">/</span>
+      <b-button variant="link" :to="`/db/${connection}/${database}/index`">{{ database }}</b-button>
       <span class="text-muted">/</span>
       <b-dropdown id="dropdown-dropright" dropright text="Collections" variant="muted" class="text-muted">
         <b-dropdown-item :to="`/db/${connection}/${database}/index`">Collections</b-dropdown-item>
         <b-dropdown-item :to="`/db/${connection}/${database}/home`">Stats</b-dropdown-item>
-        <b-dropdown-item href="#" v-b-modal.new-collection-modal>New Collection</b-dropdown-item>
       </b-dropdown>
     </div>
+    <div class="col-auto my-auto pl-0 ml-auto">
+      <a v-b-modal.new-collection-modal class="text-primary"
+        v-b-tooltip.hover title="New Collection">
+        <span class="fa fa-plus"></span>
+      </a>
+    </div>
+
   </div>
 
   <!-- Search Bar -->

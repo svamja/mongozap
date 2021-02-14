@@ -3,10 +3,14 @@
 
 <div class="container">
 
-  <!-- Breadcrumb -->
   <div class="row">
     <div class="col">
-      <b-button class="ml-0 pl-0" variant="link" :to="'/db/' + connection + '/list'">Databases</b-button>
+
+      <b-button variant="link" to="/">conns</b-button>
+      <span class="text-muted">/</span>
+      <b-button variant="link" :to="`/db/${connection}/list`">{{ parseInt(connection) + 1 }} </b-button>
+      <span class="text-muted">/</span>
+      Databases
     </div>
   </div>
 

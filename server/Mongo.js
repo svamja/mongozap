@@ -3,11 +3,11 @@ const _ = require('lodash');
 
 class Mongo {
 
-    constructor(model_name, coll) {
+    constructor(coll_name, coll) {
         if(!coll) {
             throw new Error('constructor cannot be called directly. use get');
         }
-        this.model_name = model_name;
+        this.coll_name = coll_name;
         this.coll = coll;
 
         return new Proxy(this, {
@@ -32,13 +32,12 @@ class Mongo {
 
     }
 
-    static async get(connectionUrl, dbName, model_name) {
-        if(!model_name) {
+    static async get(connectionUrl, dbName, coll_name) {
+        if(!coll_name) {
             throw new Error('model name is missing');
         }
-        let coll_name = _.snakeCase(model_name);
         let coll = await Mongo.get_collection(connectionUrl, dbName, coll_name);
-        return new Mongo(model_name, coll);
+        return new Mongo(coll_name, coll);
     }
 
     static async get_collection(connectionUrl, dbName, coll_name) {

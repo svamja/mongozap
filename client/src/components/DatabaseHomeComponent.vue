@@ -6,6 +6,10 @@
 
     <div class="row">
       <div class="col">
+        <b-button variant="link" to="/">conns</b-button>
+        <span class="text-muted">/</span>
+        <b-button variant="link" :to="`/db/${connection}/list`">{{ parseInt(connection) + 1 }} </b-button>
+        <span class="text-muted">/</span>
         <b-button variant="link" :to="`/db/${connection}/${database}/index`">{{ database }}</b-button>
         <span class="text-muted">/</span>
         <b-dropdown id="dropdown-dropright" dropright text="Stats" variant="muted" class="text-muted">

@@ -27,7 +27,7 @@ const ApiController = {
 
         // Model
         let Model;
-        if(connection_url && db && coll) {
+        if(db && coll) {
             Model = await Mongo.get(connection_url, db, coll);
         }
 
@@ -175,18 +175,13 @@ const ApiController = {
         res.json(collections);
     },
 
-    collection_index: async function(req, res) {
+    list_documents: async function(req, res) {
 
         const { EJSON } = require('bson');
 
         // Get Params
-        const connection_url = req.query.connection_url || req.body.connection_url;
-        let db = req.query.db || req.body.db;
-        const coll = req.query.coll || req.body.coll;
+        const { connection_url, db, coll, Model } = await this.init_request(req);
         const page = req.query.page || req.body.page;
-        if(db === '_mongozap') {
-            db = process.env.MONGOZAP_DATABASE;
-        }
 
         // Query
         let query;
@@ -218,7 +213,6 @@ const ApiController = {
         }
 
         // Get Collection
-        const Model = await Mongo.get(connection_url, db, coll);
         let perPage = parseInt(req.query.perPage || req.body.perPage || 10);
 
         // Get Cursor
@@ -288,21 +282,19 @@ const ApiController = {
         const { EJSON } = require('bson');
 
         // Get Collection
-        const connection_url = req.query.connection_url || req.body.connection_url;
-        let db = req.query.db || req.body.db;
-        const coll = req.query.coll || req.body.coll;
+        let { Model } = await this.init_request(req);
+
+        // Get Documents
         let docs = req.query.doc || req.body.docs;
         let doc = req.query.doc || req.body.doc;
         if(doc && !docs) {
             docs = [ doc ];
         }
-        if(db === '_mongozap') {
-            db = process.env.MONGOZAP_DATABASE;
-        }
-
-        const Model = await Mongo.get(connection_url, db, coll);
         docs = EJSON.deserialize(docs);
+
+        // Insert
         let result = await Model.insertMany(docs);
+        
         res.json({ status: 'success', count: result.insertedCount });
     },
 
@@ -431,27 +423,23 @@ const ApiController = {
         return res.json({ status: 'success', items });
     },
 
-    async indexes_get(req, res) {
+    async get_indexes(req, res) {
 
-        const connection_url = req.query.connection_url || req.body.connection_url;
-        const db = req.query.db || req.body.db;
-        const coll = req.query.coll || req.body.coll;
+        const { Model } = await this.init_request(req);
 
         // Get Indexes
-        const Model = await Mongo.get(connection_url, db, coll);
         const indexes = await Model.indexes();
         res.json(indexes);
     },
 
-    async indexes_delete(req, res) {
+    async delete_index(req, res) {
 
-        const connection_url = req.query.connection_url || req.body.connection_url;
-        const db = req.query.db || req.body.db;
-        const coll = req.query.coll || req.body.coll;
+        const { Model } = await this.init_request(req);
+
+        // Get Index
         const index_name = req.query.index_name || req.body.index_name;
 
         // Get Indexes
-        const Model = await Mongo.get(connection_url, db, coll);
         const result = await Model.dropIndex(index_name);
         res.json({ status: 'success' });
     },
@@ -604,14 +592,23 @@ const ApiController = {
             return res.json({ status: 'error', items: []});
         }
 
-        let cursor = await Model.aggregate(pipeline);
-        let items = [];
+        // Get Fields by Projection
+        let fields;
+        for(let stage of pipeline) {
+            if(stage['$project']) {
+                fields = Object.keys(stage['$project']);
+            }
+        }
+        if(fields) {
+            await sheet.write(fields);
+        }
 
         // Write to Sheet
+        let cursor = await Model.aggregate(pipeline);
+        let items = [];
         let count = 0;
-        let fields;
         for await(let doc of cursor) {
-            if(count == 0) {
+            if(count == 0 && !fields) {
                 fields = Object.keys(doc);
                 await sheet.write(fields);
             }

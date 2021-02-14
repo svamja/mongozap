@@ -123,12 +123,15 @@
       </div>
 
       <div v-if="status == 'ready'">
-        <span v-if="!sheet_url">
+        <span v-if="export_status == 'pending'">
           <a href="#" @click.prevent.stop="export_sheet">Export (Google Sheet)</a>
         </span>
-        <span v-else>
-          <a :href="sheet_url">
-            Sheet URL
+        <span v-else-if="export_status == 'started'">
+          Exporting.. (do not reload page)
+        </span>
+        <span v-else-if="export_status == 'ready'">
+          <a :href="sheet_url" target="_blank">
+            Sheet URL <span class="fa fa-external-link-alt"></span>
           </a>
         </span>
       </div>
@@ -172,6 +175,7 @@ export default {
       active_tab_index: 0,
       pipeline_text: '[\n  { "$group" : { "_id" : "$_id", "total": { "$sum" : 1 } } }\n]',
       status: "Click 'Execute'",
+      export_status: 'pending',
       sheet_url: '',
     }
   },
@@ -201,6 +205,7 @@ export default {
 
     async execute() {
 
+      this.export_status = 'pending';
       let pipeline = this.pipeline_text;
       if(!pipeline) {
         this.inputError = true;
@@ -228,16 +233,17 @@ export default {
       const authUser = ConfigService.get('authUser');
       let username = (authUser && authUser.username);
       let pipeline = this.pipeline_text;
+      let collection = this.collection;
       let title = this.title;
       let created = new Date().getTime();
-      let doc = { username, title, pipeline, created };
+      let doc = { username, collection, title, pipeline, created };
       await MongoService.post(caller, 'insert_documents', { doc });
       this.active_tab_index = 2;
       this.loadHistory();
     },
 
     async loadHistory() {
-      let result = await MongoService.get(caller, 'collection_index');
+      let result = await MongoService.get(caller, 'list_documents');
       this.aggregations = result.records;
     },
 
@@ -254,8 +260,10 @@ export default {
 
     async export_sheet() {
       let pipeline = this.pipeline_text;
+      this.export_status = 'started';
       let result = await MongoService.post(this, 'export_aggregation', { pipeline });
       this.sheet_url = result.url;
+      this.export_status = 'ready';
     },
 
   },

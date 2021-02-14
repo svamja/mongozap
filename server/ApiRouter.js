@@ -12,18 +12,9 @@ router.get('/databases', ApiController.databases);
 router.get('/db/info', ApiController.db_info);
 router.get('/collections', ApiController.collections);
 
-// Browse / Listing
-router.get('/collection/index', ApiController.collection_index);
-router.post('/collection/index', ApiController.collection_index);
-
 // Clear & Drop
 router.post('/collection/clear', ApiController.collection_clear);
 router.post('/collection/drop', ApiController.collection_drop);
-
-// Manage Indexes
-router.get('/collection/indexes', ApiController.indexes_get);
-// router.post('/collection/indexes', ApiController.indexes_post);
-router.delete('/collection/indexes', ApiController.indexes_delete);
 
 // Manage Schema
 router.get('/collection/schema', ApiController.schema_get);

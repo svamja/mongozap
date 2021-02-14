@@ -90,7 +90,7 @@ class MongoService {
                 data.sort[ctx.sortBy] = sortdir;
             }
         }
-        const result = await this.api_call('post', '/collection/index', data);
+        const result = await this.post(data, 'list_documents', data);
         return result;
     }
 
@@ -113,14 +113,6 @@ class MongoService {
 
     static async bulkOps(connection_id, db, coll, ops) {
         return await this.api_call('post', '/collection/bulk', { connection_id, db, coll, ops });
-    }
-
-    static async getIndexes(connection_id, db, coll) {
-        return await this.api_call('get', '/collection/indexes', { connection_id, db, coll });
-    }
-
-    static async deleteIndex(connection_id, db, coll, index_name) {
-        return await this.api_call('delete', '/collection/indexes', { connection_id, db, coll, index_name });
     }
 
     static async fetchDbInfo(connection_id, db) {

@@ -4,6 +4,10 @@
 <div>
 
   <!-- Breadcrumb -->
+  <b-button variant="link" to="/">conns</b-button>
+  <span class="text-muted">/</span>
+  <b-button variant="link" :to="`/db/${connection}/list`">{{ parseInt(connection) + 1 }} </b-button>
+  <span class="text-muted">/</span>
   <b-button variant="link" :to="`/db/${connection}/${database}/index`">{{ database }} (d) </b-button>
   <span class="text-muted">/</span>
   <b-button variant="link" :to="`/coll/${connection}/${database}/${collection}/index`">{{ displayCollection }} (h) </b-button>
