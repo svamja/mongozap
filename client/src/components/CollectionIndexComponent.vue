@@ -476,7 +476,7 @@ export default {
     
     async records_fn(ctx) {
       ctx.query = this.query;
-      let result = await MongoService.records(this.connection, this.database, this.collection, ctx);
+      let result = await MongoService.records(this, ctx);
       this.records = result.records; 
       let records = this.records.map(r => EJSON.deserialize(r));
       this.totalRows = result.count;

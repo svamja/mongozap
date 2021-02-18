@@ -69,28 +69,28 @@ class MongoService {
         return collections;
     }
 
-    static async records(connection_id, db, coll, ctx) {
-        let data = { connection_id, db, coll };
+    static async records(dbpath, ctx) {
+        let params = {};
         if(ctx) {
             if(ctx.currentPage) {
-                data.page = (ctx.currentPage - 1);
+                params.page = (ctx.currentPage - 1);
             }
             if(ctx.perPage) {
-                data.perPage = ctx.perPage;
+                params.perPage = ctx.perPage;
             }
             if(ctx.query) {
-                data.query = JSON.stringify(ctx.query);
+                params.query = JSON.stringify(ctx.query);
             }
             if(ctx.sortBy) {
                 let sortdir = 1;
                 if(ctx.sortDesc) {
                     sortdir = -1;
                 }
-                data.sort = {};
-                data.sort[ctx.sortBy] = sortdir;
+                params.sort = {};
+                params.sort[ctx.sortBy] = sortdir;
             }
         }
-        const result = await this.post(data, 'list_documents', data);
+        const result = await this.post(dbpath, 'list_documents', params);
         return result;
     }
 

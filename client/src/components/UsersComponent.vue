@@ -12,7 +12,7 @@
     </div>
   </div>
   <div class="container table-container">
-    <div class="row" v-for="user of users" :key="user._id">
+    <div class="row" v-for="user of users" :key="user.username">
       <div class="col">
         {{ user.username }}
       </div>
@@ -111,6 +111,7 @@ export default {
       password: '',
       role: 'user',
       error: '',
+      message: ''
     }
   },
 
@@ -121,7 +122,8 @@ export default {
   methods: {
 
     async reload() {
-      let result = await MongoService.records(0, '_mongozap', 'users');
+      let dbpath = { connection: 0, database: '_mongozap', collection: 'users' };
+      let result = await MongoService.records(dbpath);
       this.users = result.records;
     },
 
