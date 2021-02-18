@@ -35,10 +35,16 @@
 
         <div class="row">
           <div class="col small pt-2">
-            Use
-            <a class="my-2" href="https://docs.mongodb.com/manual/reference/mongodb-extended-json/#example" target="_blank">
-              EJSON Format
+            Reference:
+            <a class="my-2" href="https://docs.mongodb.com/manual/aggregation/" target="_blank">
+              Overview
+              <span class="fa fa-external-link-alt"></span>
+            </a>,
+            <a class="my-2" href="https://docs.mongodb.com/manual/reference/operator/aggregation-pipeline/" target="_blank">
+              Stages Reference
+              <span class="fa fa-external-link-alt"></span>
             </a>
+
           </div>
           <div class="col text-danger" v-if="inputError">
             Invalid JSON.
