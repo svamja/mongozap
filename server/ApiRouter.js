@@ -27,6 +27,7 @@ router.get('/api/:fn_name', ApiController.api);
 router.post('/api/:fn_name', ApiController.api);
 
 // Google Authentication
-router.get('/google/auth/complete', ApiController.google_auth_complete);
+router.get('/google/auth/:mode', ApiController.google_auth_complete);
+
 
 module.exports = router;

@@ -49,6 +49,15 @@
         </div>
       </div>
     </div>
+
+    <div class="container mt-3">
+      <div class="row justify-content-end">
+        <div class="col-auto">
+          <a :href="googleLoginUrl">Google Login</a>
+        </div>
+      </div>
+    </div>
+
   </form>
 
 </div>
@@ -59,6 +68,7 @@
 
 import MongoService from '../MongoService';
 import ConfigService from '../ConfigService';
+import queryString from 'query-string';
 
 export default {
 
@@ -67,11 +77,13 @@ export default {
       username: '',
       password: '',
       error: '',
+      googleLoginUrl: '',
       isAuthenticated: false
     }
   },
 
   async created () {
+    await this.google_auth_init();
   },
   
   methods: {
@@ -79,7 +91,6 @@ export default {
     async login() {
       let authUser = { username: this.username };
       let result = await MongoService.post(this, 'login', { username: this.username, password: this.password });
-      console.log('login result', result);
       if(result.status == 'success' && result.user) {
         ConfigService.set('token', result.token, { ttl: 30*24*3600*1000 });
         ConfigService.set('authUser', result.user, { ttl: 30*24*3600*1000 });
@@ -92,6 +103,26 @@ export default {
         this.error = 'Server/Network Error: Unable to Login';
       }
     },
+
+    async google_auth_init() {
+      this.serverSettings = await ConfigService.getServerSettings();
+      const domain = window.location.href.split('/').slice(0, 3).join('/');
+      const redirect_uri = domain + '/api/google/auth/login';
+      const stringifiedParams = queryString.stringify({
+        client_id: this.serverSettings.google_client_id,
+        redirect_uri,
+        scope: [
+          'https://www.googleapis.com/auth/userinfo.email',
+          'https://www.googleapis.com/auth/drive',
+          'https://www.googleapis.com/auth/spreadsheets',
+        ].join(' '),
+        response_type: 'code',
+        access_type: 'offline',
+      });
+      console.log('google auth init', redirect_uri);
+      this.googleLoginUrl = `https://accounts.google.com/o/oauth2/v2/auth?${stringifiedParams}`;
+    },
+
 
   },
 

@@ -16,25 +16,26 @@ class MongoService {
         let res;
         let url = baseUrl + path;
 
-        this.add_token(params);
+        const headers = this.get_headers();
 
         if(method == 'get') {
-            let data = { params };
+            let data = { params, headers };
             res = await axios.get(url, data);
         }
         else if(method == 'post') {
-            res = await axios.post(url, params);
+            res = await axios.post(url, params, { headers });
         }
         else if(method == 'delete') {
-            res = await axios.delete(url, { data: params });
+            res = await axios.delete(url, { headers, data: params });
         }
         return res.data;
     }
 
-    static add_token(params) {
+    static get_headers() {
         const token = ConfigService.get('token');
-        params.token = token;
-        return params;
+        const headers = { Authorization: `Bearer ${token}` };
+        return headers;
+        
     }
 
     static async api(caller, method, fn_name, params = {}) {

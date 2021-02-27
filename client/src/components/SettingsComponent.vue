@@ -165,8 +165,9 @@ export default {
       const domain = window.location.href.split('/').slice(0, 3).join('/')
       const stringifiedParams = queryString.stringify({
         client_id: this.serverSettings.google_client_id,
-        redirect_uri: domain + '/api/google/auth/complete',
+        redirect_uri: domain + '/api/google/auth/connect',
         scope: [
+          'https://www.googleapis.com/auth/userinfo.email',
           'https://www.googleapis.com/auth/drive',
           'https://www.googleapis.com/auth/spreadsheets',
         ].join(' '),

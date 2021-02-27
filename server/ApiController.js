@@ -68,17 +68,30 @@ const ApiController = {
             }
         }
 
-        // check from database 
-        if(!user) {
+        let response = await this.login_token(user, username, password);
+
+        res.json(response);
+
+    },
+
+    async login_token(user, username, password, options = {}) {
+        if(!user && username) {
             const connection_url = SettingsMgr.settings.default_connection;
             const db = SettingsMgr.settings.mongozap_database;
             const coll = 'users';
             const Users = await Mongo.get(connection_url, db, coll);
-            const hashed_password = ApiController.hash_password(password);
-            const db_user = await Users.findOne({ username, password: hashed_password });
-            user = { username: db_user.username, role: db_user.role, is_default: false };
+            let query = { username }
+            if(!options.pre_authorized) {
+                query.password = ApiController.hash_password(password);
+            }
+            let db_user = await Users.findOne(query);
+            if(db_user) {
+                user = { username: db_user.username, role: db_user.role, is_default: false };
+            }
         }
 
+        // Sign Token
+        let token;
         if(user) {
             token = jwt.sign(user, process.env.MONGOZAP_SECRET, {
               expiresIn: 30*86400 // expires in 30 days
@@ -87,7 +100,7 @@ const ApiController = {
 
         // response
         status = user ? 'success' : 'error';
-        res.json({ status, user, token });
+        return { status, user, token };
 
     },
 
@@ -106,7 +119,7 @@ const ApiController = {
             sub_status = 'missing_field';
             return res.json({ status, sub_status, user });
         }
-        else if(password.length < 4) {
+        else if(password.length < 8) {
             status = 'error';
             sub_status = 'short_password';
             return res.json({ status, sub_status, user });
@@ -456,8 +469,14 @@ const ApiController = {
     },
 
     async google_auth_complete(req, res) {
+
         const fs = require('fs');
         const { google } = require('googleapis');
+
+        // Mode: Login vs Connect
+        const mode = req.params.mode;
+
+        // Auth Code
         const code = req.body.code || req.query.code;
         const path = require('path');
         const base_path = path.resolve(__dirname, '..');
@@ -465,28 +484,27 @@ const ApiController = {
         const content = fs.readFileSync(cred_path);
         const cred = JSON.parse(content);
         const { client_secret, client_id, redirect_uris } = cred.web;
-        // const redirect_uri = process.env.GOOGLE_REDIRECT_URI;
-        const redirect_uri = process.env.BASE_URL + '/api/google/auth/complete';
-
-        console.log(client_id.substring(0, 10), redirect_uri);
+        const redirect_uri = process.env.BASE_URL + '/api/google/auth/' + mode;
+        console.log('authenticating: ', redirect_uri);
         const auth = new google.auth.OAuth2(
             client_id, client_secret, redirect_uri
         );
+
+        // Exchange Code with Token
         const { tokens } = await auth.getToken(code);
         console.log('token obtained');
 
-        //TODO: Save the Tokens to "users" Collection
-
-        // Save the Token
+        // Save the Token, for Later Use
         const token_path = base_path + '/.google_token.json';
         fs.writeFileSync(token_path, JSON.stringify(tokens, null, 4));
+        console.log('token saved');
 
-        // Redirect to Settings
-        res.redirect('/#/google/auth/complete');
+        // Redirect to Google Auth View
+        return res.redirect('/#/google/auth/' + mode);
 
     },
 
-    async save_token(req, res) {
+    async google_connect(req, res) {
         const fs = require('fs');
         const path = require('path');
         const username = req.body.username || req.query.username;
@@ -507,16 +525,79 @@ const ApiController = {
         else {
             res.json({ status: 'error' });
         }
+        // remove the token
+        fs.unlinkSync(token_path);
     },
 
-    init_google() {
-        const Google = require('google-api-wrapper');
+    async google_login(req, res) {
+        const { google } = require('googleapis');
+        const fs = require('fs');
         const path = require('path');
+        const username = req.body.username || req.query.username;
         const base_path = path.resolve(__dirname, '..');
         const cred_path = base_path + '/.google_credentials.json';
         const token_path = base_path + '/.google_token.json';
+        const tokens = JSON.parse(fs.readFileSync(token_path));
+
+        const content = fs.readFileSync(cred_path);
+        const cred = JSON.parse(content);
+        const { client_secret, client_id, redirect_uris } = cred.web;
+        const redirect_uri = process.env.BASE_URL + '/api/google/auth/login';
+
+        console.log('authenticating: ', redirect_uri);
+        const auth = new google.auth.OAuth2(
+            client_id, client_secret, redirect_uri
+        );
+
+        // Get User's Email Id and Login
+        auth.setCredentials(tokens);
+        const oauth2 = google.oauth2({ auth, version: 'v2' });
+        let userinfo = await oauth2.userinfo.get();
+        let email = userinfo.data.email;
+        console.log('authenticated: ', email);
+
+        // (Pre-authorized) Login using Email
+        let response = await ApiController.login_token(null, email, null, { pre_authorized: true });
+        res.json(response);
+
+        // remove the token
+        fs.unlinkSync(token_path);
+
+        // Save the Token in Database
+        if(response.user && response.user.username) {
+
+            const connection_url = SettingsMgr.settings.default_connection;
+            const db = SettingsMgr.settings.mongozap_database;
+            const Users = await Mongo.get(connection_url, db, 'users');
+            await Users.updateOne(
+                { username: response.user.username },
+                { '$set':  { google_token: tokens } }
+            );
+        }
+    },
+
+    async init_google(req) {
+        const Google = require('google-api-wrapper');
+        const path = require('path');
+
+        // Get Credentials
+        const base_path = path.resolve(__dirname, '..');
+        const cred_path = base_path + '/.google_credentials.json';
         Google.loadCredFile(cred_path);
-        Google.loadTokenFile(token_path);
+
+        // Get Token
+        const username = req.user && req.user.username;
+        if(!username) {
+            return;
+        }
+        const connection_url = SettingsMgr.settings.default_connection;
+        const db = SettingsMgr.settings.mongozap_database;
+        const Users = await Mongo.get(connection_url, db, 'users');
+        const user = await Users.findOne({ username });
+        if(!user || !user.google_token) {
+            return;
+        }
+        Google.setToken(user.google_token);
         return Google;
     },
 
@@ -527,7 +608,10 @@ const ApiController = {
         const { coll, Model, query, fields } = await this.init_request(req);
 
         // Initialize Google APIs
-        const Google = this.init_google();
+        const Google = await this.init_google(req);
+        if(!Google) {
+            return res.json({ status: 'error', message: 'auth error' });
+        }
 
         // Get Collection
         const date_time = moment().format('YYYY-MM-DD-HHmm');
@@ -569,7 +653,10 @@ const ApiController = {
         const { coll, Model } = await this.init_request(req);
 
         // Initialize Google APIs
-        const Google = this.init_google();
+        const Google = await this.init_google(req);
+        if(!Google) {
+            return res.json({ status: 'error', message: 'auth error' });
+        }
 
         // Get Collection
         const date_time = moment().format('YYYY-MM-DD-HHmm');

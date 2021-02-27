@@ -21,6 +21,11 @@
         v-b-tooltip.hover title="New Collection">
         <span class="fa fa-plus"></span>
       </a>
+      <a class="ml-2" v-shortkey.once="['r']"
+        @shortkey="reload()" href="#" @click.stop.prevent="reload()"
+        v-b-tooltip.hover title="Reload (r)">
+        <span class="fa fa-sync"></span>
+      </a>
     </div>
 
   </div>
@@ -81,23 +86,7 @@ export default {
   async created () {
     this.connection = this.$route.params.connection;
     this.database = this.$route.params.database;
-    this.collections = await MongoService.collections(this.connection, this.database);
-    const displayField = ConfigService.get('collection_display');
-    this.collections.forEach(function(coll) {
-      coll.displayName = coll[displayField];
-      if(coll.count) {
-        if(coll.count > 1000 && coll.count < 1000000) {
-          coll.displayCount = Math.floor(coll.count/1000) + 'k';
-        }
-        else if(coll.count > 1000000) {
-          coll.displayCount = Math.floor(coll.count/1000000) + 'm';
-        }
-        else {
-          coll.displayCount = '' + coll.count;
-        }
-      }
-
-    });
+    await this.reload(true);
   },
   computed: {
     filtered_collections() {
@@ -115,6 +104,25 @@ export default {
     },
   },
   methods: {
+
+    async reload(useCache = false) {
+      this.collections = await this.getCacheCollections(useCache);
+      const displayField = ConfigService.get('collection_display');
+      this.collections.forEach(function(coll) {
+        coll.displayName = coll[displayField];
+        if(coll.count) {
+          if(coll.count > 1000 && coll.count < 1000000) {
+            coll.displayCount = Math.floor(coll.count/1000) + 'k';
+          }
+          else if(coll.count > 1000000) {
+            coll.displayCount = Math.floor(coll.count/1000000) + 'm';
+          }
+          else {
+            coll.displayCount = '' + coll.count;
+          }
+        }
+      });
+    },
     
     endSearch() {
       if(this.filtered_collections.length) {
@@ -132,6 +140,19 @@ export default {
         }
         this.$router.push(`/coll/${this.connection}/${this.database}/${collection.name}/index`);
       }
+    },
+
+    async getCacheCollections(useCache) {
+      let cache_key = 'colls:' + this.connection + ':' + this.database;
+      let collections;
+      if(useCache) {
+        collections = ConfigService.get(cache_key);
+      }
+      if(!collections) {
+        collections = await MongoService.collections(this.connection, this.database);
+        ConfigService.set(cache_key, collections);
+      }
+      return collections;
     },
 
     createCollection() {

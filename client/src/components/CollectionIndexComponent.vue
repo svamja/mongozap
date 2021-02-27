@@ -133,6 +133,9 @@
     <span v-else-if="export_status == 'started'">
       Exporting.. (do not reload page)
     </span>
+    <span v-else-if="export_status == 'error'" class="text-danger">
+      Export Error
+    </span>
     <span v-else-if="export_status == 'ready'">
       <a :href="sheet_url" target="_blank">
         Sheet URL <span class="fa fa-external-link-alt"></span>
@@ -374,6 +377,7 @@ export default {
       isCollEmpty: false,
       schemaWarning: false,
       displayCollection: '',
+      is_all_sortable: true,
       search_text: '',
       query_text: '',
       deleteItem: null,
@@ -427,6 +431,16 @@ export default {
       fields = await this.default_fields();
       ConfigService.set(key, fields);
     }
+
+    // Check for all sortables
+    this.check_all_sortable();
+    if(this.is_all_sortable && fields) {
+      console.log('applying all sortable..');
+      for(let field of fields) {
+        field.sortable = true;
+      }
+    }
+
     let perPage = ConfigService.get('perPage');
     if(perPage) {
       this.perPage = perPage;
@@ -494,15 +508,14 @@ export default {
       return pretty_date;
     },
 
+
+
     async default_fields() {
       console.log('fetching default fields');
       let schema_fields = await MongoService.loadSchema(this.connection, this.database, this.collection);
       if(!schema_fields || !schema_fields.length) {
         return null;
       }
-
-      // Get Indexes
-      const db_indexes = await MongoService.get(this, 'get_indexes');
 
       // Filter to Depth 1
       schema_fields = schema_fields.filter(x => x.depth == 1);
@@ -512,19 +525,23 @@ export default {
 
       // Prepare List of Sortable Fields
       let sortables = {};
-      for(let db_index of db_indexes) {
-        for(let index_field in db_index.key) {
-          sortables[index_field] = true;
-          break;
+      if(!this.is_all_sortable) {
+        const db_indexes = await MongoService.get(this, 'get_indexes');
+        for(let db_index of db_indexes) {
+          for(let index_field in db_index.key) {
+            sortables[index_field] = true;
+            break;
+          }
         }
       }
 
       // Prepare and Return Fields
+      let is_all_sortable = this.is_all_sortable;
       let fields = schema_fields.map(function(schema_field) {
         let key = schema_field.path;
         let label = schema_field.path;
         let sortable, formatter;
-        if(sortables[key]) {
+        if(is_all_sortable || sortables[key]) {
           sortable = true;
         }
         // Convert to Unix/JS Timestamps as per preference
@@ -540,6 +557,20 @@ export default {
       // Store it
 
       return fields;
+    },
+
+    check_all_sortable() {
+      let cache_key = 'colls:' + this.connection + ':' + this.database;
+      let collections = ConfigService.get(cache_key);
+      let count;
+      for(let collection of collections) {
+        if(collection.name === this.collection) {
+          count = collection.count;
+        }
+      }
+      if(count > 50000) {
+        this.is_all_sortable = false;
+      }
     },
 
     // Edit Dialog
@@ -719,8 +750,13 @@ export default {
         fields.shift();
       }
       let result = await MongoService.post(this, 'export_sheet', { fields, query });
-      this.sheet_url = result.url;
-      this.export_status = 'ready';
+      if(result.url) {
+        this.sheet_url = result.url;
+        this.export_status = 'ready';
+      }
+      else {
+        this.export_status = 'error';
+      }
     },
 
   }

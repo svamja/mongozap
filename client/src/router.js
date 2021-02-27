@@ -38,7 +38,7 @@ const router = new Router({
     { path: '/coll/:connection/:database/:collection/aggregate', component: AggregateComponent },
     { path: '/coll/:connection/:database/:collection/indexes', component: CollectionIndexesComponent },
     { path: '/settings', component: SettingsComponent },
-    { path: '/google/auth/complete', component: GoogleAuthComponent },
+    { path: '/google/auth/:mode', component: GoogleAuthComponent },
     { path: '/users', component: UsersComponent },
     {
       path: '/login',
@@ -49,8 +49,10 @@ const router = new Router({
 });
 
 router.beforeEach((to, from, next) => {
-
   if (to.name === 'login') {
+    next();
+  }
+  else if (to.path === '/google/auth/login') {
     next();
   }
   else if(authUser && authUser.username) {

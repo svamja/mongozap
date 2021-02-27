@@ -135,6 +135,9 @@
         <span v-else-if="export_status == 'started'">
           Exporting.. (do not reload page)
         </span>
+        <span v-else-if="export_status == 'error'" class="text-danger">
+          Export Error
+        </span>
         <span v-else-if="export_status == 'ready'">
           <a :href="sheet_url" target="_blank">
             Sheet URL <span class="fa fa-external-link-alt"></span>
@@ -268,8 +271,13 @@ export default {
       let pipeline = this.pipeline_text;
       this.export_status = 'started';
       let result = await MongoService.post(this, 'export_aggregation', { pipeline });
-      this.sheet_url = result.url;
-      this.export_status = 'ready';
+      if(result.url) {
+        this.sheet_url = result.url;
+        this.export_status = 'ready';
+      }
+      else {
+        this.export_status = 'error';
+      }
     },
 
   },
