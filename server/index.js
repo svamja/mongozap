@@ -1,7 +1,5 @@
 const DotEnv = require('dotenv');
 const path = require('path');
-// const jwt = require('express-jwt');
-// const unless = require('express-unless');
 const jwt = require('jsonwebtoken');
 
 DotEnv.config();
@@ -14,21 +12,19 @@ const ApiRouter = require('./ApiRouter');
 const server = express();
 const port = process.env.PORT || 3333;
 
-// const jwtMiddleware = jwt({
-//     secret: process.env.MONGOZAP_SECRET,
-//     algorithms: [ 'HS256' ],
-    
-// }).unless({ path:  });
-
 
 function jwtMiddleware(req, res, next) {
     const allowed_paths = [
+        '/',
         '/api/login', '/api/api/login',
         '/api/google/auth/login',
         '/api/settings_get', '/api/api/settings_get',
         '/api/google_login', '/api/api/google_login'
     ];
     if(allowed_paths.includes(req.path)) {
+        return next();
+    }
+    if(req.path.substring(0, 5) !== '/api/') {
         return next();
     }
     const authHeader = req.headers['authorization'];

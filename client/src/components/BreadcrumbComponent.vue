@@ -31,6 +31,9 @@
     <b-dropdown-item href="#" :to="`/coll/${connection}/${database}/${collection}/indexes`">
       Indexes (i)
     </b-dropdown-item>
+    <!-- <b-dropdown-item href="#" :to="`/export/${connection}/${database}/${collection}/query`">
+      Export
+    </b-dropdown-item> -->
     <b-dropdown-item href="#" v-if="is_allowed_clear" v-b-modal.clear-confirmation-modal variant="danger">Clear</b-dropdown-item>
     <b-dropdown-item href="#" v-if="is_allowed_drop" v-b-modal.drop-confirmation-modal variant="danger">Drop</b-dropdown-item>
   </b-dropdown>

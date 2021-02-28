@@ -10,7 +10,7 @@
     </b-navbar-brand>
     <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
     <b-collapse id="nav-collapse" is-nav>
-      <b-navbar-nav>
+      <b-navbar-nav v-if="username">
         <b-nav-item href="#"><router-link to="/">Connections</router-link></b-nav-item>
         <b-nav-item href="#"><router-link to="/db/0/list">Databases</router-link></b-nav-item>
         <b-nav-item href="#"><router-link to="/settings">Settings</router-link></b-nav-item>

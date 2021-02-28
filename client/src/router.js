@@ -22,6 +22,7 @@ import SettingsComponent from './components/SettingsComponent';
 import UsersComponent from './components/UsersComponent';
 import LoginComponent from './components/LoginComponent';
 import GoogleAuthComponent from './components/GoogleAuthComponent';
+// import ExportComponent from './components/ExportComponent';
 
 Vue.use(Router);
 
@@ -40,11 +41,8 @@ const router = new Router({
     { path: '/settings', component: SettingsComponent },
     { path: '/google/auth/:mode', component: GoogleAuthComponent },
     { path: '/users', component: UsersComponent },
-    {
-      path: '/login',
-      component: LoginComponent,
-      name: 'login'
-    }
+    { path: '/login', component: LoginComponent, name: 'login'},
+    // { path: '/export/:connection/:database/:collection/:type', component: ExportComponent }
   ]
 });
 
