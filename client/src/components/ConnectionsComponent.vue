@@ -13,6 +13,11 @@
         </span>
       </div>
       <div class="col text-right">
+        <a class="ml-2" v-shortkey.once="['r']"
+          @shortkey="reload()" href="#" @click.stop.prevent="reload()"
+          v-b-tooltip.hover title="Reload (r)">
+          <span class="fa fa-sync"></span>
+        </a>
         <a class="ml-2" v-shortkey.once="['shift', '?']"
           @shortkey="openShortcuts()" href="#" @click.stop.prevent="openShortcuts()"
           v-b-tooltip.hover title="Keyboard Shortcuts (?)">
@@ -123,8 +128,7 @@ export default {
   },
 
   async created () {
-    this.connections = await ConfigService.getConnections() || [];
-    this.serverSettings = await ConfigService.getServerSettings();
+    await this.reload(true);
   },
 
   methods: {
@@ -136,6 +140,11 @@ export default {
         this.name = '';
         this.url = '';
       }
+    },
+
+    async reload(useCache = false) {
+      this.serverSettings = await ConfigService.getServerSettings(useCache);
+      this.connections = await ConfigService.getConnections() || [];
     },
 
     deleteConfirmation(i) {

@@ -59,11 +59,6 @@ class MongoService {
     }
 
     // Get Collections
-    static async databases(connection_id) {
-        return await this.api_call('get', '/databases', { connection_id });
-    }
-
-    // Get Collections
     static async collections(connection_id, db) {
         let collections = await this.api_call('get', '/collections', { connection_id, db });
         collections = _.sortBy(collections, [ 'name' ]);

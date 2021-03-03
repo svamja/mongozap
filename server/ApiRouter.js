@@ -8,7 +8,6 @@ router.post('/login', ApiController.login);
 router.post('/add_user', ApiController.add_user);
 
 // Db Operations
-router.get('/databases', ApiController.databases);
 router.get('/db/info', ApiController.db_info);
 router.get('/collections', ApiController.collections);
 

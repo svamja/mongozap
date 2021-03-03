@@ -23,13 +23,22 @@ const ConfigService = {
         Vue.$storage.set(key, val, options);
     },
 
-    async getServerSettings() {
-      this.serverSettings = await MongoService.get({}, 'settings_get');
-      return this.serverSettings;
+    async getServerSettings(useCache = true) {
+        let settings;
+        if(useCache) {
+            settings = this.get('server_settings');
+        }
+        if(!settings) {
+            settings = await MongoService.get({}, 'settings_get');
+            this.set('server_settings', settings);
+        }
+        this.serverSettings = settings;
+        return settings;
     },
 
     async setServerSettings(settings) {
         this.serverSettings = await MongoService.post({}, 'settings_set', { settings });
+        this.set('server_settings', this.serverSettings);
     },
 
     async setConnections(connections) {
@@ -37,9 +46,9 @@ const ConfigService = {
         this.serverSettings = await this.setServerSettings(this.serverSettings);
     },
 
-    async getConnections() {
-        this.serverSettings = await this.getServerSettings();
-        return this.serverSettings['connections'] || [];
+    async getConnections(useCache = true) {
+        let settings = await this.getServerSettings(useCache);
+        return settings['connections'] || [];
     },
 
     async connection(id) {
