@@ -10,7 +10,7 @@
         <span class="fa fa-home"></span>
       </b-button>
       <span class="text-muted">/</span>
-      <b-button variant="link" :to="`/db/${connection}/list`">{{ parseInt(connection) + 1 }} </b-button>
+      <b-button variant="link" :to="`/db/${connection}/list`">{{ connection_name }} </b-button>
       <span class="text-muted">/</span>
       Databases
     </div>
@@ -27,7 +27,7 @@
   <div class="row my-2">
     <div class="col">
       <form @submit.prevent="endSearch">
-        <b-form-input v-model="search_text" placeholder="Search" autofocus></b-form-input>
+        <b-form-input v-model="search_text" placeholder="Search (/)" v-shortkey.focus="['/']"></b-form-input>
       </form>
     </div>
   </div>
@@ -59,11 +59,16 @@ export default {
       return {
         connection: '',
         databases: [],
+        connection_name: '',
         search_text: '',
       }
     },
     async created() {
       this.connection = this.$route.params.connection;
+      let connections = await ConfigService.getConnections();
+      if(connections) {
+        this.connection_name = connections[this.connection].name;
+      }
       await this.reload(true);
     },
     computed: {

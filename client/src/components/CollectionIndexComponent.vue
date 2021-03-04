@@ -94,6 +94,9 @@
     :current-page="currentPage"
     :per-page="perPage">
 
+    <!-- :sort-by.sync="sort_field" -->
+    <!-- :sort-desc.sync="sort_desc" -->
+
       <template #cell(_id)="row">
         <div @click="row.toggleDetails" class="link-display"> 
           {{ row.value }}
@@ -380,6 +383,8 @@ export default {
       is_all_sortable: true,
       search_text: '',
       query_text: '',
+      // sort_field: null,
+      // sort_desc: null,
       deleteItem: null,
       editItem: null,
       insertItem: null,
@@ -435,7 +440,6 @@ export default {
     // Check for all sortables
     this.check_all_sortable();
     if(this.is_all_sortable && fields) {
-      console.log('applying all sortable..');
       for(let field of fields) {
         field.sortable = true;
       }
@@ -490,6 +494,11 @@ export default {
     
     async records_fn(ctx) {
       ctx.query = this.query;
+      // if(ctx.sortBy) {
+      //   let sort = {};
+      //   sort[ctx.sortBy] = ctx.sortDesc ? -1 : 1;
+      //   ConfigService.set(this.collection + ':sort', sort);
+      // }
       let result = await MongoService.records(this, ctx);
       this.records = result.records; 
       let records = this.records.map(r => EJSON.deserialize(r));
@@ -511,7 +520,6 @@ export default {
 
 
     async default_fields() {
-      console.log('fetching default fields');
       let schema_fields = await MongoService.loadSchema(this.connection, this.database, this.collection);
       if(!schema_fields || !schema_fields.length) {
         return null;

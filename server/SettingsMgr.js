@@ -47,6 +47,7 @@ const SettingsMgr = {
       }
       await this.SettingsModel.insertMany(records);
       await this.loadFromDatabase();
+      return this.settings;
     },
 
     async get(key) {

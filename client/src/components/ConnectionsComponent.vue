@@ -28,30 +28,17 @@
   </div>
 
   <div class="container table-container">
-    <div class="row py-2 h4">
-      <div class="col">
-        <div v-shortkey="['1']" @shortkey="selectDb(0)">
-          1. 
-          <router-link :to="'/db/0/list'">
-            Default
-          </router-link>
-        </div>
-        <div class="small text-muted ml-4">
-          {{ serverSettings.default_connection }}
-        </div>
-      </div>
-    </div>
     <div class="row py-2 h4" v-for="(connection, index) in connections" :key="connection.url">
       <div class="col">
-        <div v-shortkey="[ index + 2 ]" @shortkey="selectDb(index + 1)">
-          {{ index + 2 }}.  
-          <router-link :to="'/db/' + (index + 1) + '/list'">
+        <div v-shortkey="[ index + 1 ]" @shortkey="selectConnection(index + 1)">
+          {{ index + 1 }}.  
+          <router-link :to="'/db/' + index + '/list'">
             {{ connection.name }}
           </router-link>
         </div>
         <div class="small text-muted ml-4"> {{ connection.url }} </div>
       </div>
-      <div class="col text-center">
+      <div v-if="index > 0" class="col text-center">
         <span class="text-warning fa fa-trash" @click="deleteConfirmation(index)"></span>
       </div>
     </div>
@@ -59,12 +46,15 @@
 
   <!-- Add Connection Modal -->
   <b-modal id="add-connection-modal" title="Add Connection" v-model="showAddModal"  @ok="addConnection()">
-    <div>
-      <b-form-input v-model="name" placeholder="Name" autofocus></b-form-input>
-    </div>
-    <div class="my-3">
-      <b-form-input v-model="url" placeholder="URL" ></b-form-input>
-    </div>
+    <form method="post" @submit.prevent="addConnection()">
+      <div>
+        <b-form-input v-model="name" name="name" placeholder="Name" autofocus></b-form-input>
+      </div>
+      <div class="my-3">
+        <b-form-input v-model="url" name="url" placeholder="URL" ></b-form-input>
+      </div>
+      <input type="submit" style="position: absolute; left: -9999px; visibility: hidden;" />
+   </form>
   </b-modal>
 
   <!-- Delete Confirmation Modal -->
@@ -139,6 +129,7 @@ export default {
         await ConfigService.setConnections(this.connections);
         this.name = '';
         this.url = '';
+        this.showAddModal = false;
       }
     },
 
@@ -153,14 +144,14 @@ export default {
     },
 
     async deleteConnection() {
-      if(this.deleteIndex > -1) {
+      if(this.deleteIndex > 0) {
         this.connections.splice(this.deleteIndex, 1)
         await ConfigService.setConnections(this.connections);
         this.deleteIndex = -1;
       }
     },
 
-    selectDb(index) {
+    selectConnection(index) {
         this.$router.push('/db/' + index + '/list');
     },
 

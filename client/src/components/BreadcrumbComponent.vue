@@ -4,9 +4,11 @@
 <div>
 
   <!-- Breadcrumb -->
-  <b-button variant="link" to="/">conns</b-button>
+  <b-button variant="link" to="/">
+    <span class="fa fa-home"></span>
+  </b-button>
   <span class="text-muted">/</span>
-  <b-button variant="link" :to="`/db/${connection}/list`">{{ parseInt(connection) + 1 }} </b-button>
+  <b-button variant="link" :to="`/db/${connection}/list`">{{ connection_name }} </b-button>
   <span class="text-muted">/</span>
   <b-button variant="link" :to="`/db/${connection}/${database}/index`">{{ database }} (d) </b-button>
   <span class="text-muted">/</span>
@@ -19,9 +21,6 @@
     <b-dropdown-item href="#" :to="`/coll/${connection}/${database}/${collection}/filter`">
       Filter (/)
     </b-dropdown-item>
-    <b-dropdown-item href="#" :to="`/coll/${connection}/${database}/${collection}/aggregate`">
-      Aggregate (a)
-    </b-dropdown-item>
     <b-dropdown-item href="#" :to="`/coll/${connection}/${database}/${collection}/fields`">
       Fields (f)
     </b-dropdown-item>
@@ -30,6 +29,12 @@
     </b-dropdown-item>
     <b-dropdown-item href="#" :to="`/coll/${connection}/${database}/${collection}/indexes`">
       Indexes (i)
+    </b-dropdown-item>
+    <b-dropdown-item href="#" :to="`/coll/${connection}/${database}/${collection}/aggregate`">
+      Aggregate (a)
+    </b-dropdown-item>
+    <b-dropdown-item href="#" :to="`/coll/${connection}/${database}/${collection}/views`">
+      Views (v)
     </b-dropdown-item>
     <!-- <b-dropdown-item href="#" :to="`/export/${connection}/${database}/${collection}/query`">
       Export
@@ -69,6 +74,11 @@
     @shortkey="gotoShortcut('aggregate')" href="#"
     >
   </a>
+  <a v-shortkey.once="['v']" 
+    :to="`/coll/${connection}/${database}/${collection}/views`"
+    @shortkey="gotoShortcut('views')" href="#"
+    >
+  </a>
   <a v-shortkey.once="['s']" 
     :to="`/coll/${connection}/${database}/${collection}/schema`"
     @shortkey="gotoShortcut('schema')" href="#"
@@ -90,15 +100,20 @@ export default {
   data() {
     return {
       is_allowed_drop: false,
-      is_allowed_clear: false
+      is_allowed_clear: false,
+      connection_name: ''
     }
   },
 
-  created() {
+  async created() {
     let authUser = ConfigService.get('authUser');
     if(authUser.role === 'admin') {
       this.is_allowed_clear = true;
       this.is_allowed_drop = true;
+    }
+    let connections = await ConfigService.getConnections();
+    if(connections) {
+      this.connection_name = connections[this.connection].name;
     }
   },
 

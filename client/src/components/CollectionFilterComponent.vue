@@ -196,6 +196,7 @@ export default {
     }
     await this.reload();
     this.items = ConfigService.get(this.collection + ':filter') || [];
+    this.updateQuery();
   },
 
   methods: {

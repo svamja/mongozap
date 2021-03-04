@@ -6,9 +6,11 @@
 
     <div class="row">
       <div class="col">
-        <b-button variant="link" to="/">conns</b-button>
+        <b-button variant="link" to="/">
+          <span class="fa fa-home"></span>
+        </b-button>
         <span class="text-muted">/</span>
-        <b-button variant="link" :to="`/db/${connection}/list`">{{ parseInt(connection) + 1 }} </b-button>
+        <b-button variant="link" :to="`/db/${connection}/list`">{{ connection_name }} </b-button>
         <span class="text-muted">/</span>
         <b-button variant="link" :to="`/db/${connection}/${database}/index`">{{ database }}</b-button>
         <span class="text-muted">/</span>
@@ -64,6 +66,7 @@ export default {
     return {
       connection: '',
       database: '',
+      connection_name: '',
       search_text: '',
       stats: {
         collections: null,
@@ -75,6 +78,10 @@ export default {
   async created () {
     this.connection = this.$route.params.connection;
     this.database = this.$route.params.database;
+    let connections = await ConfigService.getConnections();
+    if(connections) {
+      this.connection_name = connections[this.connection].name;
+    }
     await this.fetchDbInfo();
   },
 

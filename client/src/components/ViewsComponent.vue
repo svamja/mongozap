@@ -11,61 +11,22 @@
         :database="database"
         :collection="collection" 
         :display-collection="displayCollection" 
-        action="Aggregate"
+        action="Views"
       />
     </div>
   </div>
 
   <div class="row mt-3">
     <div class="col">
-      <div class="h5">Aggregation</div>
+      <div class="h5">Views</div>
     </div>
   </div>
 
   <b-card no-body>
     <b-tabs v-model="active_tab_index" card>
-      <b-tab title="Execute" active>
-        <div>
-          <b-textarea
-            id="pipeline_textarea"
-            v-model="pipeline_text" rows="8"
-            :class="{ 'is-invalid': inputError  }"
-            autofocus></b-textarea>
-        </div>
 
-        <div class="row">
-          <div class="col small pt-2">
-            Reference:
-            <a class="my-2" href="https://docs.mongodb.com/manual/aggregation/" target="_blank">
-              Overview
-              <span class="fa fa-external-link-alt"></span>
-            </a>,
-            <a class="my-2" href="https://docs.mongodb.com/manual/reference/operator/aggregation-pipeline/" target="_blank">
-              Stages Reference
-              <span class="fa fa-external-link-alt"></span>
-            </a>
-
-          </div>
-          <div class="col text-danger" v-if="inputError">
-            Invalid JSON.
-          </div>
-          <div class="col pt-2 text-right">
-            <button class="btn btn-primary" @click="execute">Execute</button> &nbsp;
-          </div>
-        </div>
-
-      </b-tab>
-      <b-tab title="Save">
-        Title
-        <div>
-          <b-input v-model="title" />
-        </div>
-        <div class="text-right mt-2">
-          <button class="btn btn-primary" @click="save">Save</button>
-        </div>
-      </b-tab>
-      <b-tab title="Load">
-        <div v-if="!aggregations.length">
+      <b-tab title="Views">
+        <div v-if="!views.length">
           No History
         </div>
         <div v-else>
@@ -77,17 +38,17 @@
               <th>  </th>
             </thead>
             <tbody>
-              <tr v-for="aggregation in aggregations" :key="aggregation._id['$oid']">
-                <td> {{ aggregation.title }} </td>
-                <td> {{ aggregation.username }} </td>
-                <td> {{ aggregation.created | time_format }} </td>
+              <tr v-for="view in views" :key="view._id['$oid']">
+                <td> {{ view.title }} </td>
+                <td> {{ view.username }} </td>
+                <td> {{ view.created | time_format }} </td>
                 <td>
-                  <a href="#" @click.stop.prevent="load(aggregation)">
+                  <a href="#" @click.stop.prevent="load(view)">
                     <span class="fa fa-edit"></span>
                     (Load)
                   </a>
                   &nbsp;
-                  <a href="#" @click.stop.prevent="remove(aggregation)">
+                  <a href="#" @click.stop.prevent="remove(view)">
                     <span class="fa fa-trash text-warning"></span>
                   </a>
                 </td>
@@ -96,57 +57,62 @@
           </table>
         </div>
       </b-tab>
-    </b-tabs>
-  </b-card>
-
-
-  <div class="row mt-3">
-    <div class="col">
-      <div class="h5">Output (First 100 Items) </div>
-
-      <!-- Table -->
-      <b-table id="records_table" ref="bv_table"
-        bordered small :sticky-header="true"
-        class="mb-0"
-        header-variant="light"
-        v-if="status == 'ready'"
-        :items="items"
-        :fields="fields"
-      >
-      </b-table>
-
-      <div v-if="status == 'ready'">
-        {{ count }} records
-      </div>
-
-      <!-- Empty Table  -->
-      <div v-if="status != 'ready'">
-        <div class="row border m-1">
-          <div class="col p-5 text-center h4">
-            <span> {{ status }} </span>
+      
+      <b-tab title="Create View">
+        <div class="row my-2">
+          <table class="table table-bordered">
+            <tr>
+              <td>
+                Fields
+                <router-link :to="`/coll/${connection}/${database}/${collection}/fields`">
+                  <span class="ml-2 fa fa-edit"></span>
+                </router-link>
+              </td>
+              <td> 
+                <div v-if="fields">
+                  <div v-for="field in fields" :key="field.key">{{ field.key }}</div>
+                </div>
+                <div v-else>
+                  (Default)
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td> 
+                Query
+                <router-link :to="`/coll/${connection}/${database}/${collection}/filter`">
+                  <span class="ml-2 fa fa-edit"></span>
+                </router-link>
+              </td>
+              <td> 
+                <pre>{{ query }}</pre>
+              </td>
+            </tr>
+            <!-- <tr>
+              <td> 
+                Sort
+                <router-link :to="`/coll/${connection}/${database}/${collection}/index`">
+                  <span class="ml-2 fa fa-edit"></span>
+                </router-link>
+              </td>
+              <td> 
+                <pre>{{ sort }}</pre>
+              </td>
+            </tr> -->
+          </table>
+        </div>
+        <div class="row">
+          <div class="col">
+            <b-input v-model="title" />
+          </div>
+          <div class="col-auto">
+            <button class="btn btn-primary" @click="save">Save</button>
           </div>
         </div>
-      </div>
+      </b-tab>
 
-      <div v-if="status == 'ready'">
-        <span v-if="export_status == 'pending'">
-          <a href="#" @click.prevent.stop="export_sheet">Export (Google Sheet)</a>
-        </span>
-        <span v-else-if="export_status == 'started'">
-          Exporting.. (do not reload page)
-        </span>
-        <span v-else-if="export_status == 'error'" class="text-danger">
-          Export Error
-        </span>
-        <span v-else-if="export_status == 'ready'">
-          <a :href="sheet_url" target="_blank">
-            Sheet URL <span class="fa fa-external-link-alt"></span>
-          </a>
-        </span>
-      </div>
-
-    </div>
-  </div>
+    </b-tabs>
+  </b-card>
 
 
 </div>
@@ -161,7 +127,7 @@ import _ from 'lodash';
 import moment from 'moment';
 import BreadcrumbComponent from './BreadcrumbComponent';
 
-const caller = { connection: 0, database: '_mongozap', collection: 'aggregations' };
+const caller = { connection: 0, database: '_mongozap', collection: 'views' };
 
 
 export default {
@@ -174,18 +140,12 @@ export default {
       database: '',
       collection: '',
       displayCollection: '',
-      items: [],
-      count: 0,
-      fields: [],
-      pipeline: [],
-      inputError: '',
+      query: '',
+      fields: null,
+      views: [],
+      // sort: '',
       title: '',
-      aggregations: [],
       active_tab_index: 0,
-      pipeline_text: '[\n  { "$group" : { "_id" : "$_id", "total": { "$sum" : 1 } } }\n]',
-      status: "Click 'Execute'",
-      export_status: 'pending',
-      sheet_url: '',
     }
   },
 
@@ -206,8 +166,35 @@ export default {
     else {
       this.displayCollection = _.upperFirst(_.camelCase(this.collection));
     }
-    this.title = 'Aggregation ' + moment().format('MMM DD, YYYY');
+
+    // Default Title
+    this.title =  this.displayCollection + ' ' + moment().format('YYYY.MM.DD');
+
+    // Get Fields
+    this.fields = ConfigService.get(this.collection + ':fields');
+    // console.log('fields', this.fields);
+
+    // Get Query
+    let query = ConfigService.get(this.collection + ':query');
+    if(query) {
+      this.query = JSON.stringify(query, null, 2);
+    }
+    else {
+      this.query = '{ }';
+    }
+
+    // // Get Sort
+    // let sort = ConfigService.get(this.collection + ':sort');
+    // if(sort) {
+    //   this.sort = JSON.stringify(sort, null, 2);
+    // }
+    // else {
+    //   this.sort = '{ }';
+    // }
+
+    // Load History
     this.loadHistory();
+
   },
 
   methods: {
@@ -241,25 +228,36 @@ export default {
     async save() {
       const authUser = ConfigService.get('authUser');
       let username = (authUser && authUser.username);
-      let pipeline = this.pipeline_text;
+      let query = this.query;
+      // let sort = this.sort;
+      let fields = JSON.stringify(this.fields);
       let collection = this.collection;
       let title = this.title;
       let created = new Date().getTime();
-      let doc = { username, collection, title, pipeline, created };
+      let doc = { username, collection, title, query, fields, created };
       await MongoService.post(caller, 'insert_documents', { doc });
-      this.active_tab_index = 2;
+      this.active_tab_index = 0;
       this.loadHistory();
     },
 
     async loadHistory() {
       let query = { 'collection': this.collection };
       let result = await MongoService.get(caller, 'list_documents', { query });
-      this.aggregations = result.records;
+      this.views = result.records;
     },
 
-    load(aggregation) {
-      this.pipeline_text = aggregation.pipeline;
-      this.active_tab_index = 0;
+    load(view) {
+      let query = view.query;
+      let fields = view.fields;
+      if(query) {
+        query = JSON.parse(query);
+      }
+      if(fields) {
+        fields = JSON.parse(fields);
+      }
+      ConfigService.set(this.collection + ':query', query);
+      ConfigService.set(this.collection + ':fields', fields);
+      this.$router.push(`/coll/${this.connection}/${this.database}/${this.collection}/index`);
     },
 
     async remove(aggregation) {

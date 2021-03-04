@@ -18,6 +18,7 @@ import CollectionIndexesComponent from './components/CollectionIndexesComponent'
 import CollectionFilterComponent from './components/CollectionFilterComponent';
 import CollectionFieldsComponent from './components/CollectionFieldsComponent';
 import AggregateComponent from './components/AggregateComponent';
+import ViewsComponent from './components/ViewsComponent';
 import SettingsComponent from './components/SettingsComponent';
 import UsersComponent from './components/UsersComponent';
 import LoginComponent from './components/LoginComponent';
@@ -37,6 +38,7 @@ const router = new Router({
     { path: '/coll/:connection/:database/:collection/filter', component: CollectionFilterComponent },
     { path: '/coll/:connection/:database/:collection/fields', component: CollectionFieldsComponent },
     { path: '/coll/:connection/:database/:collection/aggregate', component: AggregateComponent },
+    { path: '/coll/:connection/:database/:collection/views', component: ViewsComponent },
     { path: '/coll/:connection/:database/:collection/indexes', component: CollectionIndexesComponent },
     { path: '/settings', component: SettingsComponent },
     { path: '/google/auth/:mode', component: GoogleAuthComponent },

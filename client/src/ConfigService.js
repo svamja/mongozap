@@ -42,13 +42,17 @@ const ConfigService = {
     },
 
     async setConnections(connections) {
+        let default_connection = connections.shift();
         this.serverSettings.connections = connections;
-        this.serverSettings = await this.setServerSettings(this.serverSettings);
+        await this.setServerSettings(this.serverSettings);
+        connections.unshift(default_connection);
     },
 
     async getConnections(useCache = true) {
         let settings = await this.getServerSettings(useCache);
-        return settings['connections'] || [];
+        let connections = settings['connections'] || [];
+        connections.unshift({ name: 'Default', url: settings.default_connection });
+        return connections;
     },
 
     async connection(id) {

@@ -464,8 +464,8 @@ const ApiController = {
 
     async settings_set(req, res) {
         let settings = req.body.settings || req.query.settings;
-        await SettingsMgr.write(settings);
-        res.json({ status: 'success' });
+        settings = await SettingsMgr.write(settings);
+        res.json(settings);
     },
 
     async google_auth_complete(req, res) {
