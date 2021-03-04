@@ -56,15 +56,8 @@ const ConfigService = {
     },
 
     async connection(id) {
-        if(!this.serverSettings.default_connection) {
-            await this.getServerSettings();
-        }
-        if(id == 0) {
-            return this.serverSettings.default_connection;
-        }
-        else {
-            return this.serverSettings.connections[id - 1].url;
-        }
+        let connections = await this.getConnections();
+        return connections[id].url;
     }
 
 }
