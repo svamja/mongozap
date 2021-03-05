@@ -408,6 +408,7 @@ export default {
     this.connection = this.$route.params.connection;
     this.database = this.$route.params.database;
     this.collection = this.$route.params.collection;
+    document.title = this.collection;
     const displayField = ConfigService.get('collection_display');
     let uiSettings = ConfigService.get('uiSettings');
     if(!uiSettings.stickyTableHeight || uiSettings.stickyTableHeight == 'false') {

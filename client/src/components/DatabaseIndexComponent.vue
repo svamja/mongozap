@@ -89,6 +89,7 @@ export default {
   async created () {
     this.connection = this.$route.params.connection;
     this.database = this.$route.params.database;
+    document.title = this.database;
     let connections = await ConfigService.getConnections();
     if(connections) {
       this.connection_name = connections[this.connection].name;

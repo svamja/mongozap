@@ -206,7 +206,13 @@ export default {
     else {
       this.displayCollection = _.upperFirst(_.camelCase(this.collection));
     }
-    this.title = 'Aggregation ' + moment().format('MMM DD, YYYY');
+    this.title = this.collection + ' aggregation ' + moment().format('YYYY.MM.DD');
+
+    let pipeline_text = ConfigService.get('aggregation:pipeline');
+    if(pipeline_text) {
+      this.pipeline_text = pipeline_text;
+    }
+
     this.loadHistory();
   },
 
@@ -220,6 +226,7 @@ export default {
         this.inputError = true;
         return;
       }
+      ConfigService.set('aggregation:pipeline', this.pipeline_text);
       let result = await MongoService.get(this, 'aggregate', { pipeline });
       if(!result.status || result.status != 'success') {
         this.inputError = true;

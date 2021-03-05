@@ -63,11 +63,21 @@
         <div class="row">
 
           <div class="col-5">
+
             <b-form-select
+              v-show="is_path_select"
               v-model="editItem.path"
               placeholder="Field"
               autofocus
               :options="field_options"></b-form-select>
+
+            <input 
+              v-show="!is_path_select"
+              v-model="editItem.path"
+              type="text" class="form-control" />
+
+            <span class="fa fa-edit" @click="is_path_select = !is_path_select"></span>
+
           </div>
 
           <div class="col-2">
@@ -175,6 +185,7 @@ export default {
         operator: '$eq',
         value: null
       },
+      is_path_select: true,
       fields: [],
       field_options: [],
       items: [],

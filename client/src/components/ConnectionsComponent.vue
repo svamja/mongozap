@@ -118,6 +118,7 @@ export default {
   },
 
   async created () {
+    document.title = 'MongoZap';
     await this.reload(true);
   },
 
