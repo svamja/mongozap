@@ -30,7 +30,7 @@
   <div class="container table-container">
     <div class="row py-2 h4" v-for="(connection, index) in connections" :key="connection.url">
       <div class="col">
-        <div v-shortkey="[ index + 1 ]" @shortkey="selectConnection(index + 1)">
+        <div v-shortkey="[ index + 1 ]" @shortkey="selectConnection(index)">
           {{ index + 1 }}.  
           <router-link :to="'/db/' + index + '/list'">
             {{ connection.name }}
