@@ -2,17 +2,15 @@
 
 MongoDB GUI Client, geared towards faster productivity 
 
-* keyboard shortcuts
-* CRUD operations (Cread, Read, Update, Delete)
-* generate & view schema
-* tabular + json view
-* selection of fields
-* filtering by fields + raw query
-* manage indexes
-* aggregation
-* export to google sheet
-* login using google auth
-* assign read-only / admin roles
+* Views ⭐ - select fields, apply filter and save it as view. share it with team.
+* Aggregation ⭐ - create and run aggregations. save it and share it.
+* Roles 🔒 - read only and admin role users
+* Keyboard Shortcuts ⌨️ - quick shortcuts to jump to different actions
+* Schema - generate and view schema
+* Tabular - default tabular view with JSON expansion for each document
+* Field Selection & Filters - easy query builder and field selector
+* Google Login 🔒 - Easily Login with Google OAuth
+* Export - export to google sheet
 
 It is built using SPA (Single Page Application) architecture using VueJS and NodeJS.
 
