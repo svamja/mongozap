@@ -23,6 +23,10 @@ const ConfigService = {
         Vue.$storage.set(key, val, options);
     },
 
+    remove(key) {
+        Vue.$storage.remove(key);
+    },
+
     async getServerSettings(useCache = true) {
         let settings;
         if(useCache) {

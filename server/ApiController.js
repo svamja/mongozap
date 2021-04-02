@@ -351,6 +351,28 @@ const ApiController = {
         res.json({ status: 'success', count: result.deletedCount });
     },
 
+    async copy_collection(req, res) {
+        // Get Collection
+        const { connection_url, db, coll, Model  } = await this.init_request(req);
+
+        let new_collection = req.query.new_collection || req.body.new_collection;
+        console.log(`copying to ${new_collection}..`);
+
+        let items = await Model.aggregate([ { '$out' : new_collection } ]);
+        for await(let item of items) {
+            console.log(item);
+        }
+        let indexes = await Model.indexes();
+        console.log(indexes);
+
+        TargetModel = await Mongo.get(connection_url, db, new_collection);
+        for(let index of indexes) {
+            await TargetModel.createIndex(index.key);
+        }
+        res.json({ status: 'success' });
+
+    },
+
     async collection_clear(req, res) {
         // Get Collection
         const connection_url = req.query.connection_url || req.body.connection_url;

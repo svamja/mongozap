@@ -289,6 +289,16 @@
     </table>
   </b-modal>
 
+  <!-- Copy Collection Modal -->
+  <b-modal id="copy-collection-modal" title="Copy Collection"
+    ok-title="Copy Collection"
+    @ok="copyCollection()">
+    <div>
+      <div> New Collection Name </div>
+      <b-input v-model="copy_collection_name"></b-input>
+    </div>
+  </b-modal>
+
   <!-- Clear Confirmation Modal -->
   <b-modal id="clear-confirmation-modal" title="Confirmation"
     ok-variant="danger" ok-title="Clear Collection"
@@ -391,6 +401,7 @@ export default {
       insertError: false,
       searchError: false,
       editError: false,
+      copy_collection_name: '',
       records: [],
       fields: null,
       perPage: 100,
@@ -628,13 +639,25 @@ export default {
       this.showInsertModal = true;
     },
 
+    async copyCollection() {
+      if(this.copy_collection_name) {
+        let new_collection = this.copy_collection_name;
+        await MongoService.post(this, 'copy_collection', { new_collection });
+        this.$router.push(`/coll/${this.connection}/${this.database}/${new_collection}/index`);
+        ConfigService.remove('colls:' + this.connection + ':' + this.database);
+        window.location.reload();
+      }
+    },
+
     async clearCollection() {
-      await MongoService.clear(this.connection, this.database, this.collection);
+      await MongoService.post(this, 'collection_clear');
+      ConfigService.remove('colls:' + this.connection + ':' + this.database);
       this.reload();
     },
 
     async dropCollection() {
-      await MongoService.drop(this.connection, this.database, this.collection);
+      await MongoService.post(this, 'collection_drop');
+      ConfigService.remove('colls:' + this.connection + ':' + this.database);
       this.$router.push(`/db/${this.connection}/${this.database}/index`);
     },
     

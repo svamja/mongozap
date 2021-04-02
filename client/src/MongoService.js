@@ -90,14 +90,6 @@ class MongoService {
         return result;
     }
 
-    static async clear(connection_id, db, coll) {
-        return await this.api_call('post', '/collection/clear', { connection_id, db, coll });
-    }
-
-    static async drop(connection_id, db, coll) {
-        return await this.api_call('post', '/collection/drop', { connection_id, db, coll });
-    }
-
     static async loadSchema(connection_id, db, coll) {
         return await this.api_call('get', '/collection/schema', { connection_id, db, coll });
     }

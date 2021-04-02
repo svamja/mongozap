@@ -11,10 +11,6 @@ router.post('/add_user', ApiController.add_user);
 router.get('/db/info', ApiController.db_info);
 router.get('/collections', ApiController.collections);
 
-// Clear & Drop
-router.post('/collection/clear', ApiController.collection_clear);
-router.post('/collection/drop', ApiController.collection_drop);
-
 // Manage Schema
 router.get('/collection/schema', ApiController.schema_get);
 
