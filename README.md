@@ -24,7 +24,8 @@ npm install
 npm start
 ````
 
-You can now access it on [http://localhost:3333](http://localhost:3333)
+You can now access it on [http://localhost:3333](http://localhost:3333)  
+(login using 'admin' / 'admin')
 
 ## Server Configuration
 
