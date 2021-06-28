@@ -109,9 +109,7 @@
         Google Connect (Sheet Export)
       </div>
       <div class="col p-1">
-        <div id="google-signin-button"></div>
         <a :href="googleLoginUrl">Google Connect</a>
-
       </div>
     </div>
 
@@ -173,6 +171,7 @@ export default {
         ].join(' '),
         response_type: 'code',
         access_type: 'offline',
+        prompt: 'consent'
       });
       this.googleLoginUrl = `https://accounts.google.com/o/oauth2/v2/auth?${stringifiedParams}`;
     },

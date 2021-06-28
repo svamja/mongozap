@@ -21,7 +21,7 @@
         <span class="fa fa-sync"></span>
       </a>
       <a v-shortkey.once="['r']" class="text-danger ml-2"
-        @shortkey="rebuildSchema()" href="#" 
+        @shortkey="reload(true)" href="#" 
         v-b-modal.rebuild-confirmation-modal 
         v-b-tooltip.hover title="Rebuild">
         <span class="fa fa-undo"></span>
@@ -38,7 +38,7 @@
           No Schema
         </div>
         <div>
-          <a class="btn btn-primary" @click="rebuildSchema">
+          <a class="btn btn-primary" @click="reload(true)">
             Build Schema
           </a>
         </div>
@@ -144,7 +144,7 @@
   <!-- Reload Confirmation Modal -->
   <b-modal id="rebuild-confirmation-modal" title="Confirmation"
     ok-variant="danger" ok-title="Rebuild"
-    @ok="rebuildSchema()">
+    @ok="reload(true)">
     <p>
       This will delete exising schema changes, if any. <br/>
       It will rebuild the schema based on latest data.
@@ -212,8 +212,8 @@ export default {
 
   methods: {
 
-    async reload() {
-      this.fields = await MongoService.loadSchema(this.connection, this.database, this.collection);
+    async reload(rebuild) {
+      this.fields = await MongoService.get(this, 'schema_get', { rebuild });
       if(!this.fields || !this.fields.length) {
         this.isSchemaEmpty = true;
       }
@@ -223,11 +223,6 @@ export default {
       for(let field of this.fields) {
         this.field_options.push({ value: field.path, text: field.path });
       }
-    },
-
-    async rebuildSchema() {
-      await MongoService.rebuildSchema(this.connection, this.database, this.collection);
-      await this.reload();
     },
 
     async addItem() {

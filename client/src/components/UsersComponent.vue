@@ -5,26 +5,6 @@
 
 
   <div class="container">
-    <div class="row mt-3">
-      <div class="col h4">
-        Users
-      </div>
-    </div>
-  </div>
-  <div class="container table-container">
-    <div class="row" v-for="user of users" :key="user.username">
-      <div class="col">
-        {{ user.username }}
-      </div>
-      <div class="col">
-        {{ user.role }}
-      </div>
-    </div>
-  </div>
-
-
-
-  <div class="container">
     <div class="row mt-5">
       <div class="col h4">
         Create User
@@ -93,6 +73,26 @@
     </div>
   </form>
 
+  <div class="container">
+    <div class="row mt-3">
+      <div class="col h4">
+        Users ({{ users.length }})
+      </div>
+    </div>
+  </div>
+  <div class="container table-container">
+    <div class="row" v-for="user of users" :key="user.username">
+      <div class="col">
+        {{ user.username }}
+      </div>
+      <div class="col">
+        {{ user.role }}
+      </div>
+    </div>
+  </div>
+
+
+
 </div>
 
 </template>
@@ -123,13 +123,19 @@ export default {
 
     async reload() {
       let dbpath = { connection: 0, database: '_mongozap', collection: 'users' };
-      let result = await MongoService.records(dbpath);
+      let params = { perPage: 1000 };
+      let result = await MongoService.records(dbpath, params);
       this.users = result.records;
     },
 
     async create_user() {
       let authUser = { username: this.username };
-      let result = await MongoService.add_user(this.username, this.password, this.role);
+      let params = {
+        username: this.username,
+        password: this.password,
+        role: this.role
+      };
+      let result = await MongoService.post(this, 'add_user', params);
       if(result.status == 'success') {
         this.username = '';
         this.password = '';

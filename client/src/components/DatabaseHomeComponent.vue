@@ -82,15 +82,11 @@ export default {
     if(connections) {
       this.connection_name = connections[this.connection].name;
     }
-    await this.fetchDbInfo();
+    this.stats = await MongoService.get(this, 'db_info');
+    this.stats.dataSize = this.formatBytes(this.stats.dataSize);
   },
 
   methods: {
-
-    async fetchDbInfo() {
-      this.stats = await MongoService.fetchDbInfo(this.connection, this.database);
-      this.stats.dataSize = this.formatBytes(this.stats.dataSize);
-    },
 
     formatBytes(size) {
       let suffix = "bytes";

@@ -44,7 +44,7 @@ export default {
       const authUser = ConfigService.get('authUser');
       const username = authUser.username;
       await MongoService.get(this, 'google_connect', { username });
-      this.$router.push(`/settings`);
+      this.$router.push(`/profile`);
     }
   },
   

@@ -4,14 +4,20 @@ const SettingsMgr = require('./SettingsMgr');
 const { EJSON } = require('bson');
 const _ = require('lodash');
 const jwt = require('jsonwebtoken');
+const moment = require('moment');
 
 const ApiController = {
 
     async api(req, res) {
         let fn_name = req.params.fn_name;
-        console.time('api: ' + fn_name);
+        const time = moment().format('YYYY-MM-DD HH:mm:ss');
+        const startTime = new Date().getTime();
+        let coll = req.query.coll || req.body.coll || '';
+        console.log(time, fn_name, coll, 'start');
         const result = await ApiController[fn_name](req, res);
-        console.timeEnd('api: ' + fn_name);
+        const endTime = new Date().getTime();
+        const elapsed = endTime - startTime;
+        console.log(time, fn_name, coll, 'end', elapsed, 'ms');
         return result;
     },
 
@@ -102,6 +108,23 @@ const ApiController = {
         status = user ? 'success' : 'error';
         return { status, user, token };
 
+    },
+
+    async get_profile(req, res) {
+        if(!req.user || !req.user.username) {
+            return res.json({ user: null });
+        }
+        const connection_url = SettingsMgr.settings.default_connection;
+        const db = SettingsMgr.settings.mongozap_database;
+        const coll = 'users';
+        const username = req.user.username;
+        const Users = await Mongo.get(connection_url, db, coll);
+        let user = await Users.findOne({ username });
+        if(!user) {
+            return res.json({ user: null });
+        }
+        user = _.pick(user, [ '_id', 'username', 'google_token' ]);
+        return res.json({ user });
     },
 
     async add_user(req, res) {
@@ -532,23 +555,20 @@ const ApiController = {
         const username = req.body.username || req.query.username;
         const base_path = path.resolve(__dirname, '..');
         const token_path = base_path + '/.google_token.json';
-        const token = JSON.parse(fs.readFileSync(token_path));
-        const connection_url = SettingsMgr.settings.default_connection;
-        const db = SettingsMgr.settings.mongozap_database;
-        const Users = await Mongo.get(connection_url, db, 'users');
-        const user = await Users.findOne({ username });
-        if(user) {
-            await Users.updateOne(
-                { _id: user._id },
-                { '$set':  { google_token: token } }
-            );
+        const google_token = JSON.parse(fs.readFileSync(token_path));
+
+        // Store Token
+        let result = await this.store_token(username, google_token);
+        if(result) {
             res.json({ status: 'success' });
         }
         else {
             res.json({ status: 'error' });
         }
-        // remove the token
+
+        // Remove the token file
         fs.unlinkSync(token_path);
+
     },
 
     async google_login(req, res) {
@@ -559,7 +579,7 @@ const ApiController = {
         const base_path = path.resolve(__dirname, '..');
         const cred_path = base_path + '/.google_credentials.json';
         const token_path = base_path + '/.google_token.json';
-        const tokens = JSON.parse(fs.readFileSync(token_path));
+        const google_token = JSON.parse(fs.readFileSync(token_path));
 
         const content = fs.readFileSync(cred_path);
         const cred = JSON.parse(content);
@@ -572,7 +592,7 @@ const ApiController = {
         );
 
         // Get User's Email Id and Login
-        auth.setCredentials(tokens);
+        auth.setCredentials(google_token);
         const oauth2 = google.oauth2({ auth, version: 'v2' });
         let userinfo = await oauth2.userinfo.get();
         let email = userinfo.data.email;
@@ -582,20 +602,32 @@ const ApiController = {
         let response = await ApiController.login_token(null, email, null, { pre_authorized: true });
         res.json(response);
 
-        // remove the token
+        // Remove the token file
         fs.unlinkSync(token_path);
 
         // Save the Token in Database
         if(response.user && response.user.username) {
-
-            const connection_url = SettingsMgr.settings.default_connection;
-            const db = SettingsMgr.settings.mongozap_database;
-            const Users = await Mongo.get(connection_url, db, 'users');
-            await Users.updateOne(
-                { username: response.user.username },
-                { '$set':  { google_token: tokens } }
-            );
+            await this.store_token(response.user.username, google_token);
         }
+    },
+
+    async store_token(username, google_token) {
+        const connection_url = SettingsMgr.settings.default_connection;
+        const db = SettingsMgr.settings.mongozap_database;
+        const Users = await Mongo.get(connection_url, db, 'users');
+        const user = await Users.findOne({ username });
+        if(user) {
+            console.log(`updating token for ${username}`);
+            if(user.google_token) {
+                google_token.refresh_token = google_token.refresh_token || user.google_token.refresh_token;
+            }
+            await Users.updateOne(
+                { _id: user._id },
+                { '$set':  { google_token } }
+            );
+            return true;
+        }
+        return false;
     },
 
     async init_google(req) {
@@ -620,11 +652,11 @@ const ApiController = {
             return;
         }
         Google.setToken(user.google_token);
+        console.log('setting user token for ', user.username);
         return Google;
     },
 
     async export_sheet(req, res) {
-        const moment = require('moment');
 
         // Get Req Params
         const { coll, Model, query, fields } = await this.init_request(req);
@@ -669,7 +701,6 @@ const ApiController = {
     },
 
     async export_aggregation(req, res) {
-        const moment = require('moment');
 
         // Get Req Params
         const { coll, Model } = await this.init_request(req);

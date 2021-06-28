@@ -51,10 +51,10 @@ More screenshots [here](screenshots.md).
 
 ## Google Login / Google Connect (for Google Sheets Export)
 
-1. Create OAuth Client Id on [Google Console](https://console.cloud.google.com/apis/credentials)
-    Origin: http://localhost:3333
-    Redirect URI:
-    http://localhost:3333/api/google/auth/login
+1. Create OAuth Client Id on [Google Console](https://console.cloud.google.com/apis/credentials)  
+    Origin: http://localhost:3333  
+    Redirect URI:  
+    http://localhost:3333/api/google/auth/login  
     http://localhost:3333/api/google/auth/connect
 2. Download and save the credentials at the root of the project as ".google_credentials.json"
 3. Update .env file to add below variable

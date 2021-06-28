@@ -71,6 +71,7 @@
 
 <script>
 
+import _ from 'lodash';
 import ConfigService from '../ConfigService';
 import MongoService from '../MongoService';
 
@@ -157,7 +158,8 @@ export default {
         collections = ConfigService.get(cache_key);
       }
       if(!collections) {
-        collections = await MongoService.collections(this.connection, this.database);
+        collections = await MongoService.get(this, 'collections');
+        collections = _.sortBy(collections, [ 'name' ]);
         ConfigService.set(cache_key, collections);
       }
       return collections;

@@ -22,7 +22,7 @@
       <!-- Right aligned nav items -->
       <b-navbar-nav class="ml-auto">
         <b-nav-item v-if="username">
-          {{ username }}
+          <router-link to="/profile">{{ username }}</router-link>
           (<a href="#" @click="logout">Logout</a>)
         </b-nav-item>
         <b-nav-item v-else>

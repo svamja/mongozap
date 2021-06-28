@@ -18,6 +18,7 @@ function jwtMiddleware(req, res, next) {
         '/',
         '/api/login', '/api/api/login',
         '/api/google/auth/login',
+        '/api/google/auth/connect',
         '/api/settings_get', '/api/api/settings_get',
         '/api/google_login', '/api/api/google_login'
     ];

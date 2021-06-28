@@ -4,6 +4,12 @@ import ConfigService from './ConfigService';
 
 const baseUrl = 'api';
 
+/*
+    Wrapper Class for all the API calls to Server.
+    Provides easy "get" and "post" methods to make calls to ApiController
+    on the Server side.
+*/
+
 class MongoService {
 
     static async api_call(method, path, params = {}) {
@@ -58,13 +64,6 @@ class MongoService {
         return await this.api(caller, 'post', fn_name, params);
     }
 
-    // Get Collections
-    static async collections(connection_id, db) {
-        let collections = await this.api_call('get', '/collections', { connection_id, db });
-        collections = _.sortBy(collections, [ 'name' ]);
-        return collections;
-    }
-
     static async records(dbpath, ctx) {
         let params = {};
         if(ctx) {
@@ -88,27 +87,6 @@ class MongoService {
         }
         const result = await this.post(dbpath, 'list_documents', params);
         return result;
-    }
-
-    static async loadSchema(connection_id, db, coll) {
-        return await this.api_call('get', '/collection/schema', { connection_id, db, coll });
-    }
-
-    static async rebuildSchema(connection_id, db, coll) {
-        let rebuild = true;
-        return await this.api_call('get', '/collection/schema', { connection_id, db, coll, rebuild });
-    }
-
-    static async bulkOps(connection_id, db, coll, ops) {
-        return await this.api_call('post', '/collection/bulk', { connection_id, db, coll, ops });
-    }
-
-    static async fetchDbInfo(connection_id, db) {
-        return await this.api_call('get', '/db/info', { connection_id, db });
-    }
-
-    static async add_user(username, password, role) {
-        return await this.api_call('post', '/add_user', { username, password, role });
     }
 
 }

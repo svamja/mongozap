@@ -532,7 +532,7 @@ export default {
 
 
     async default_fields() {
-      let schema_fields = await MongoService.loadSchema(this.connection, this.database, this.collection);
+      let schema_fields = await MongoService.get(this, 'schema_get');
       if(!schema_fields || !schema_fields.length) {
         return null;
       }

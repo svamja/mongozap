@@ -5,17 +5,6 @@ const router = express.Router();
 
 // Login
 router.post('/login', ApiController.login);
-router.post('/add_user', ApiController.add_user);
-
-// Db Operations
-router.get('/db/info', ApiController.db_info);
-router.get('/collections', ApiController.collections);
-
-// Manage Schema
-router.get('/collection/schema', ApiController.schema_get);
-
-// Bulk Operations (Update, Replace, etc)
-router.post('/collection/bulk', ApiController.bulk);
 
 // New Routing Method to Call Functions from Client
 router.get('/api/:fn_name', ApiController.api);
