@@ -218,6 +218,7 @@ const ApiController = {
         // Get Params
         const { connection_url, db, coll, Model } = await this.init_request(req);
         const page = req.query.page || req.body.page;
+        const limit = parseInt(req.query.limit || req.body.limit || 0);
 
         // Query
         let query;
@@ -272,8 +273,12 @@ const ApiController = {
 
         // Estimated Count
         let count = records.length;
-        if(query && Object.keys(query).length) {
-            count = await Model.countDocuments(query);
+        if((query && Object.keys(query).length) || limit) {
+            let options = {};
+            if(limit) {
+                options.limit = limit;
+            }
+            count = await Model.countDocuments(query, options);
         }
         else {
             count = await Model.estimatedDocumentCount();

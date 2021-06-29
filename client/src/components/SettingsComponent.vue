@@ -94,26 +94,6 @@
 
   </div>
 
-  <!-- Miscellaneous Settings -->
-  <div class="container">
-    <div class="row my-3">
-      <div class="col h4">
-        Miscellaneous
-      </div>
-    </div>
-  </div>
-
-  <div class="container table-container">
-    <div class="row">
-      <div class="col">
-        Google Connect (Sheet Export)
-      </div>
-      <div class="col p-1">
-        <a :href="googleLoginUrl">Google Connect</a>
-      </div>
-    </div>
-
-  </div>
 
 </div>
 
@@ -134,8 +114,6 @@ export default {
       records_display_default: '',
       serverSettings: {},
       uiSettings: {},
-      auth2: null,
-      googleLoginUrl: '',
     }
   },
 
@@ -144,7 +122,6 @@ export default {
     this.records_display_default = ConfigService.get('records_display_default') || 'table';
     this.uiSettings = ConfigService.get('uiSettings');
     await this.loadServerSettings();
-    this.google_auth_init();
   },
   
   methods: {
@@ -157,23 +134,6 @@ export default {
 
     async loadServerSettings() {
       this.serverSettings = await ConfigService.getServerSettings();
-    },
-
-    google_auth_init() {
-      const domain = window.location.href.split('/').slice(0, 3).join('/')
-      const stringifiedParams = queryString.stringify({
-        client_id: this.serverSettings.google_client_id,
-        redirect_uri: domain + '/api/google/auth/connect',
-        scope: [
-          'https://www.googleapis.com/auth/userinfo.email',
-          'https://www.googleapis.com/auth/drive',
-          'https://www.googleapis.com/auth/spreadsheets',
-        ].join(' '),
-        response_type: 'code',
-        access_type: 'offline',
-        prompt: 'consent'
-      });
-      this.googleLoginUrl = `https://accounts.google.com/o/oauth2/v2/auth?${stringifiedParams}`;
     },
 
   },

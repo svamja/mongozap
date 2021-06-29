@@ -2,9 +2,10 @@
 
 <div>
 
+  <!-- Connections  -->
   <div class="container">
-    <div class="row my-3">
-      <div class="col h4">
+    <div class="row mt-3">
+      <div class="col h5">
         Connections
         <span class="fa fa-plus ml-3 text-primary"
           v-shortkey="[ 'shift', '+' ]"
@@ -28,21 +29,58 @@
   </div>
 
   <div class="container table-container">
-    <div class="row py-2 h4" v-for="(connection, index) in connections" :key="connection.url">
-      <div class="col">
+    <div class="row" v-for="(connection, index) in connections" :key="connection.url">
+      <div class="col-4">
         <div v-shortkey="[ index + 1 ]" @shortkey="selectConnection(index)">
-          {{ index + 1 }}.  
-          <router-link :to="'/db/' + index + '/list'">
+          {{ index + 1 }}.
+          <router-link :to="'/db/' + index + '/list'" class="ml-2">
             {{ connection.name }}
           </router-link>
         </div>
+      </div>
+      <div class="col-6">
         <div class="small text-muted ml-4"> {{ connection.url }} </div>
       </div>
-      <div v-if="index > 0" class="col text-center">
+      <div v-if="index > 0" class="col-2 text-center">
         <span class="text-warning fa fa-trash" @click="deleteConfirmation(index)"></span>
       </div>
     </div>
   </div>
+
+
+  <!-- Favorites  -->
+  <div class="container">
+    <div class="row mt-4">
+      <div class="col h5">
+        Favorites
+      </div>
+    </div>
+  </div>
+
+
+  <div class="container table-container">
+
+    <div class="row">
+      <div class="col-3"> Connection# </div>
+      <div class="col-3"> Database </div>
+      <div class="col-6"> Collection </div>
+    </div>
+
+    <div class="row" v-for="(favorite, index) in favorites" :key="index">
+      <div class="col-3"> {{ parseInt(favorite.connection) + 1 }} </div>
+      <div class="col-3"> {{ favorite.database }} </div>
+      <div class="col-6">
+        <router-link :to="`/coll/${favorite.connection}/${favorite.database}/${favorite.collection}/index`">
+          {{ favorite.collection }}
+        </router-link>
+        <a href="#" @click.stop.prevent="removeFavorite(favorite)" class="ml-1">
+          <span class="fa fa-star text-warning"></span>
+        </a>
+      </div>
+    </div>
+
+  </div>
+
 
   <!-- Add Connection Modal -->
   <b-modal id="add-connection-modal" title="Add Connection" v-model="showAddModal"  @ok="addConnection()">
@@ -79,11 +117,11 @@
         </tr>
         <tr>
           <td>1</td>
-          <td>Connection 1</td>
+          <td>Go to Connection 1</td>
         </tr>
         <tr>
           <td>2</td>
-          <td>Connection 2</td>
+          <td>Go to Connection 2</td>
         </tr>
         <tr>
           <td>.</td>
@@ -100,6 +138,7 @@
 
 <script>
 
+import _ from 'lodash';
 import ConfigService from '../ConfigService';
 
 export default {
@@ -114,11 +153,14 @@ export default {
       showDeleteModal: false,
       showAddModal: false,
       showShortcutsModal: false,
+      favorites: [],
     }
   },
 
   async created () {
     document.title = 'MongoZap';
+    let favorites = ConfigService.get('favorites') || [];
+    this.favorites = _.sortBy(favorites, [ 'connection', 'database', 'collection' ]);
     await this.reload(true);
   },
 
@@ -158,6 +200,15 @@ export default {
 
     openShortcuts() {
       this.showShortcutsModal = true;
+    },
+
+    removeFavorite(favorite) {
+      this.favorites = _.reject(this.favorites, function(x) {
+          return x.connection == favorite.connection && 
+            x.database == favorite.database &&
+            x.collection == favorite.collection
+      });
+      ConfigService.set('favorites', this.favorites);
     },
     
   },

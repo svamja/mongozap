@@ -12,7 +12,17 @@
   <span class="text-muted">/</span>
   <b-button variant="link" :to="`/db/${connection}/${database}/index`">{{ database }} (d) </b-button>
   <span class="text-muted">/</span>
-  <b-button variant="link" :to="`/coll/${connection}/${database}/${collection}/index`">{{ displayCollection }} (h) </b-button>
+  <b-button variant="link" :to="`/coll/${connection}/${database}/${collection}/index`" class="pr-1">
+    {{ displayCollection }} (h)
+  </b-button>
+  <span @click.stop.prevent="toggleFavorite()" class="mr-2">
+    <span v-if="is_favorite">
+      <i class="text-warning fa fa-star"></i>
+    </span>
+    <span v-else>
+      <i class="text-grey far fa-star"></i>
+    </span>
+  </span>
   <span class="text-muted">/</span>
   <b-dropdown id="dropdown-dropright" dropright :text="action" variant="muted" class="text-muted">
     <b-dropdown-item href="#" :to="`/coll/${connection}/${database}/${collection}/index`">
@@ -94,6 +104,7 @@
 
 <script>
 
+import _ from 'lodash';
 import ConfigService from '../ConfigService';
 
 export default {
@@ -104,11 +115,13 @@ export default {
     return {
       is_allowed_drop: false,
       is_allowed_clear: false,
-      connection_name: ''
+      connection_name: '',
+      is_favorite: false,
     }
   },
 
   async created() {
+    this.favorites = ConfigService.get('favorites') || [];
     let authUser = ConfigService.get('authUser');
     if(authUser.role === 'admin') {
       this.is_allowed_clear = true;
@@ -118,6 +131,7 @@ export default {
     if(connections) {
       this.connection_name = connections[this.connection].name;
     }
+    this.check_favorite();
   },
 
   methods: {
@@ -128,8 +142,42 @@ export default {
       }
       this.$router.push(`/coll/${this.connection}/${this.database}/${this.collection}/${path_code}`);
     },
-  }
-    
+
+    toggleFavorite() {
+      let self = this;
+      if(this.is_favorite) {
+        this.favorites = _.reject(this.favorites, function(x) {
+            return x.connection == self.connection && 
+              x.database == self.database &&
+              x.collection == self.collection
+        });
+      }
+      else {
+        this.favorites.push({
+          connection: this.connection,
+          database: this.database,
+          collection: self.collection
+        });
+      }
+      ConfigService.set('favorites', this.favorites);
+      this.check_favorite();
+    },
+
+    check_favorite() {
+      if(!this.favorites || !this.favorites.length) {
+        this.is_favorite = false;
+        return;
+      }
+      let self = this;
+      let filtered = this.favorites.filter(function(x) {
+        return x.connection == self.connection && 
+              x.database == self.database &&
+              x.collection == self.collection
+      });
+      this.is_favorite = filtered.length ? true : false;
+    },
+
+  },
 
 }
 

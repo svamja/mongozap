@@ -393,6 +393,7 @@ export default {
       is_all_sortable: true,
       search_text: '',
       query_text: '',
+      limit: 0,
       // sort_field: null,
       // sort_desc: null,
       deleteItem: null,
@@ -411,6 +412,7 @@ export default {
       is_allowed_edit: false,
       is_allowed_delete: false,
       sheet_url: '',
+      favorites: [],
       export_status: 'pending',
     }
   },
@@ -434,6 +436,8 @@ export default {
     else {
       this.displayCollection = _.upperFirst(_.camelCase(this.collection));
     }
+
+    // Query
     let key = this.collection + ':query';
     this.query = ConfigService.get(key);
     if(this.query) {
@@ -442,6 +446,8 @@ export default {
     else {
       this.query = {};
     }
+
+    // Fields
     key = this.collection + ':fields';
     let fields = ConfigService.get(key);
     if(!fields) {
@@ -457,6 +463,7 @@ export default {
       }
     }
 
+    // Per Page
     let perPage = ConfigService.get('perPage');
     if(perPage) {
       this.perPage = perPage;
@@ -468,6 +475,12 @@ export default {
       this.schemaWarning = true;
     }
     this.fields = fields;
+
+    // Limit
+    let limit = ConfigService.get(this.collection + ':limit');
+    this.limit = parseInt(limit || 0);
+
+    // Auth Actions
     let authUser = ConfigService.get('authUser');
     if(authUser.role === 'admin') {
       this.is_allowed_delete = true;
@@ -511,6 +524,7 @@ export default {
       //   sort[ctx.sortBy] = ctx.sortDesc ? -1 : 1;
       //   ConfigService.set(this.collection + ':sort', sort);
       // }
+      ctx.limit = this.limit;
       let result = await MongoService.records(this, ctx);
       this.records = result.records; 
       let records = this.records.map(r => EJSON.deserialize(r));

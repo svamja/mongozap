@@ -127,7 +127,15 @@
 
   </div>
 
-  <div class="row my-3" v-if="items.length">
+  <div class="row my-3">
+    <div class="col">
+      <div class="">
+        Limit <input type="text" v-model="limit" />
+      </div>
+    </div>
+  </div>
+
+  <div class="row my-3">
     <div class="col-2">
       <button class="btn btn-primary" @click="applyFilter">
         Apply
@@ -191,6 +199,7 @@ export default {
       items: [],
       query: {},
       query_display: '',
+      limit: 0
     }
   },
 
@@ -205,6 +214,7 @@ export default {
     else {
       this.displayCollection = _.upperFirst(_.camelCase(this.collection));
     }
+    this.limit = ConfigService.get(this.collection + ':limit') || 0;
     await this.reload();
     this.items = ConfigService.get(this.collection + ':filter') || [];
     this.updateQuery();
@@ -296,6 +306,9 @@ export default {
 
       let filter_key = this.collection + ':filter';
       ConfigService.set(filter_key, this.items, { ttl });
+
+      let limit_key = this.collection + ':limit';
+      ConfigService.set(limit_key, this.limit, { ttl });
 
       this.$router.push(`/coll/${this.connection}/${this.database}/${this.collection}/index`);
     },

@@ -84,6 +84,7 @@ class MongoService {
                 params.sort = {};
                 params.sort[ctx.sortBy] = sortdir;
             }
+            params.limit = ctx.limit || 0;
         }
         const result = await this.post(dbpath, 'list_documents', params);
         return result;
