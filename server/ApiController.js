@@ -351,7 +351,13 @@ const ApiController = {
         const Model = await Mongo.get(connection_url, db, coll);
         query = EJSON.deserialize(query);
         changes = EJSON.deserialize(changes);
-        let result = await Model.updateMany(query, changes);
+        let result;
+        try {
+            result = await Model.updateMany(query, changes);
+        }
+        catch(err) {
+            return res.json({ status: 'error' })
+        }
         res.json({ status: 'success', count: result.modifiedCount });
     },
 
@@ -493,6 +499,23 @@ const ApiController = {
         // Get Indexes
         const indexes = await Model.indexes();
         res.json(indexes);
+    },
+
+    async create_index(req, res) {
+
+        const { Model } = await this.init_request(req);
+        const doc = req.query.doc || req.body.doc;
+
+        // Create Index
+        try {
+            let result = await Model.createIndex(doc);
+        }
+        catch(err) {
+            console.log('error creating index', doc);
+            console.log(err);
+            return res.json({ status: 'error' });
+        }
+        res.json({ status: 'success' });
     },
 
     async delete_index(req, res) {

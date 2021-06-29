@@ -15,7 +15,7 @@
     </div>
 
     <div class="col-auto my-auto pl-0 ml-auto">
-      <a v-shortkey.once="[ 'shift', '+']"
+      <a v-shortkey.once="[ 'shift', '+']" v-if="is_allowed_create"
         @shortkey="showCreate()" href="#" @click.stop.prevent="showCreate()"
         v-b-tooltip.hover title="Create Index (+)">
         <span class="fa fa-plus"></span>
@@ -56,6 +56,29 @@
     </div>
   </div>
 
+  <!-- Create Index Modal -->
+  <b-modal id="create-modal"
+    title="Create Index" size="xl" v-model="showCreateModal"
+    @ok="createIndex"
+    ok-title="Create Index"
+    >
+    <div>
+      <div class="mb-2">
+        Enter Index Key in JSON format:
+      </div>
+      <b-textarea
+        id="create_textarea"
+        v-model="createText" rows="2"
+        :class="{ 'is-invalid': createError  }"
+        autofocus></b-textarea>
+    </div>
+    <div class="row">
+      <div class="col text-danger" v-if="createError">
+        Invalid JSON.
+      </div>
+    </div>
+  </b-modal>
+
   <!-- Delete Confirmation Modal -->
   <b-modal id="delete-confirmation-modal" title="Confirmation"
     ok-variant="danger" ok-title="Delete"
@@ -91,9 +114,19 @@ export default {
       displayCollection: '',
       isEmpty: false,
       indexes: [],
+
+      // Delete
       deleteItem: null,
       showDeleteModal: false,
       is_allowed_delete: false,
+
+      // Create
+      createText: '',
+      createItem: {},
+      showCreateModal: false,
+      createError: '',
+      is_allowed_create: false,
+
     }
   },
 
@@ -111,6 +144,7 @@ export default {
     let authUser = ConfigService.get('authUser');
     if(authUser.role === 'admin') {
       this.is_allowed_delete = true;
+      this.is_allowed_create = true;
     }
     await this.reload();
   },
@@ -125,6 +159,26 @@ export default {
       else {
         this.isEmpty = false;
       }
+    },
+
+    showCreate(e) {
+      this.showCreateModal = true;
+    },
+
+    async createIndex(e) {
+      e.preventDefault();
+      let doc;
+      this.createError = '';
+      try {
+        doc = JSON.parse(this.createText);
+      }
+      catch(err) {
+        this.createError = 'Invalid JSON';
+        return;
+      }
+      await MongoService.post(this, 'create_index', { doc });
+      this.showCreateModal = false;
+      this.reload();
     },
 
     deleteConfirmation(index) {

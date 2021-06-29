@@ -27,7 +27,7 @@
       </a>
       <a class="ml-2" v-shortkey.once="['q']" 
         @shortkey="openSearch()" href="#" @click.stop.prevent="openSearch()"
-        v-b-tooltip.hover title="Query (q)">
+        v-b-tooltip.hover title="Query, Update and Delete (q)">
         <span class="fa fa-search"></span>
       </a>
       <a class="ml-2" v-shortkey.once="['r']"
@@ -191,54 +191,137 @@
   </b-modal>
 
   <!-- Search Modal -->
-  <b-modal id="search-modal" title="Query" v-model="showSearchModal">
+  <b-modal id="search-modal" title="Query" v-model="showSearchModal" :hide-footer="true">
     <b-tabs content-class="mt-3">
-      <div>
-        <b-textarea
-          v-model="query_text" rows="8"
-          :class="{ 'is-invalid': searchError  }"
-          autofocus></b-textarea>
-      </div>
-      <div class="row">
-        <div class="col text-danger" v-if="searchError">
-          Invalid JSON.
+      <b-tab title="Query" active>
+        <div>
+          <b-textarea
+            v-model="query_text" rows="8"
+            :class="{ 'is-invalid': searchError  }"
+            autofocus></b-textarea>
         </div>
-        <div class="col text-right">
-          <a class="small my-2" href="https://docs.mongodb.com/manual/reference/mongodb-extended-json/#example" target="_blank">
-            EJSON Format <i class="fa fa-external-link-alt"></i>
-          </a>
+        <div class="row">
+          <div class="col text-danger" v-if="searchError">
+            Invalid JSON.
+          </div>
+          <div class="col text-right">
+            <a class="small my-2" href="https://docs.mongodb.com/manual/reference/mongodb-extended-json/#example" target="_blank">
+              EJSON Format <i class="fa fa-external-link-alt"></i>
+            </a>
+          </div>
         </div>
-      </div>
+        <div class="row">
+          <div class="col">
+
+            <b-button
+              variant="secondary"
+              size="sm"
+              class="float-right"
+              @click="resetSearch()"
+            >
+              Reset
+            </b-button>
+
+            <b-button
+              variant="primary"
+              size="sm"
+              class="mr-2 float-right"
+              @click="applySearch()"
+            >
+              Search
+            </b-button>
+
+          </div>
+        </div>
+
+      </b-tab>
+
+      <b-tab title="Update">
+
+        <div class="row">
+          <div class="col">
+            <div>
+              <div>
+                Update all documents matching below query:
+              </div>
+              <div class="my-2 text-monospace">
+                {{ query_text }}
+              </div>
+            </div>
+            <div v-if="is_allowed_edit">
+              <div>
+                Update operation:
+              </div>
+              <b-textarea v-model="update_text" rows="4"></b-textarea>
+              <div class="col text-danger" v-if="updateError">
+                {{ updateError }}.
+                Check
+                <a href="https://docs.mongodb.com/manual/reference/mongodb-extended-json/#example" target="_blank" class="text-danger">
+                  JSON
+                </a>
+              </div>
+            </div>
+            <div v-else>
+              [Not Authorized]
+            </div>
+          </div>
+        </div>
+
+        <div class="row mt-2" v-if="is_allowed_edit">
+          <div class="col">
+
+            <b-button
+              variant="primary"
+              size="sm"
+              class="float-right"
+              @click="updateRecords()"
+            >
+              Update
+            </b-button>
+          </div>
+        </div>
+
+      </b-tab>
+
+      <b-tab title="Delete">
+
+        <div class="row">
+          <div class="col">
+            <div>
+              Delete all the records with below query:
+            </div>
+            <div class="mt-2 text-monospace">
+              {{ query_text }}
+            </div>
+          </div>
+        </div>
+
+        <div class="row mt-2">
+          <div class="col">
+
+            <b-button
+              v-if="is_allowed_delete" 
+              variant="danger"
+              size="sm"
+              class="float-right"
+              @click="deleteRecords()"
+            >
+              Confirm Delete
+            </b-button>
+
+            <div v-else>
+              [Not Authorized]
+            </div>
+
+          </div>
+        </div>
+
+      </b-tab>
+
+
+
     </b-tabs>
-    <template v-slot:modal-footer>
-      <div class="w-100">
-        <b-button
-          variant="primary"
-          size="sm"
-          class="float-right"
-          @click="applySearch()"
-        >
-          Search
-        </b-button>
-        <b-button
-          variant="secondary"
-          size="sm"
-          class="mr-2 float-right"
-          @click="resetSearch()"
-        >
-          Reset
-        </b-button>
-        <b-button
-          v-if="is_allowed_delete" 
-          variant="danger"
-          size="sm"
-          class="mr-2 float-right"
-          @click="deleteRecords()"
-        >
-          Delete
-        </b-button>
-      </div>
-    </template>
+
   </b-modal>
 
   <!-- Keyboard Shortcuts Modal -->
@@ -398,9 +481,11 @@ export default {
       // sort_desc: null,
       deleteItem: null,
       editItem: null,
+      update_text: '',
       insertItem: null,
       insertError: false,
       searchError: false,
+      updateError: '',
       editError: false,
       copy_collection_name: '',
       records: [],
@@ -759,6 +844,59 @@ export default {
       this.$root.$emit('bv::refresh::table', 'records_table');
       this.searchError = false;
       this.showSearchModal = false;
+    },
+
+    async updateRecords() {
+      let query;
+      if(this.query_text && this.query_text.trim()) {
+        try {
+          query = JSON.parse(this.query_text);
+        }
+        catch(err) {
+          this.searchError = true;
+          return;
+        }
+      }
+      if(!query) {
+        query = {};
+      }
+      this.searchError = false;
+      let changes;
+      if(this.update_text && this.update_text.trim()) {
+        try {
+          changes = JSON.parse(this.update_text);
+        }
+        catch(err) {
+          this.updateError = 'Invalid JSON';
+          return;
+        }
+      }
+      if(!changes) {
+        this.updateError = 'Empty JSON';
+        return;
+      }
+      this.updateError = false;
+      this.showSearchModal = false;
+      let result = await MongoService.post(this, 'update_documents', { query, changes });
+      if(!result.status || result.status == 'error') {
+        this.$bvToast.toast(`Error updating records. Make sure to use '$set' or similar operator.`, {
+          title: 'Error',
+          variant: 'danger',
+          solid: true,
+          autoHideDelay: 5000,
+          appendToast: true
+        });
+      }
+      else {
+        this.$bvToast.toast(`${result.count} records updated`, {
+          title: 'Success',
+          variant: 'success',
+          solid: true,
+          autoHideDelay: 5000,
+          appendToast: true
+        });
+        this.$root.$emit('bv::refresh::table', 'records_table');
+      }
     },
 
     async deleteRecords() {

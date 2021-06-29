@@ -6,6 +6,7 @@ const SettingsMgr = require('./SettingsMgr');
 const SchemaMgr = {
 
     SchemaModel: null,
+    fields_indexed: false,
 
     async init() {
         if(this.SchemaModel) {
@@ -22,10 +23,16 @@ const SchemaMgr = {
 
         await this.init();
 
+        // Create Index (in background)
+        if(!this.fields_indexed) {
+            this.fields_indexed = true;
+            this.SchemaModel.createIndex({ db: 1, coll: 1 });
+        }
+
         // Obtain Sample Records
         const Model = await Mongo.get(connection_url, db, coll);
         const sort = { _id: -1 };
-        const docs = await Model.find().sort(sort).limit(100).toArray();
+        const docs = await Model.find().sort(sort).limit(5000).toArray();
 
         if(!docs || !docs.length) {
             return;

@@ -238,6 +238,7 @@ export default {
     async addItem() {
       let { path, operator, value } = this.editItem;
       if(!path) {
+        await this.applyFilter();
         return;
       }
       
