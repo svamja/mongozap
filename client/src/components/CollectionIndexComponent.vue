@@ -942,7 +942,7 @@ export default {
       let result = await MongoService.post(this, 'export_sheet', { fields, query });
       if(result.url) {
         this.sheet_url = result.url;
-        this.export_message = 'Export Complete.';
+        this.export_message = 'Sheet Created. Export will continue in background.';
         this.export_class = 'text-success';
       }
       else {

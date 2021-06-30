@@ -705,9 +705,10 @@ const ApiController = {
         const date_time = moment().format('YYYY-MM-DD-HHmm');
 
         // Get Sheet
+        let sheet, sheet_id;
         try {
-            const sheet = Google.getSheet();
-            const sheet_id = await sheet.create(`${coll} export ${date_time}`);
+            sheet = Google.getSheet();
+            sheet_id = await sheet.create(`${coll} export ${date_time}`);
             await sheet.write(fields);
         }
         catch(err) {
@@ -715,6 +716,9 @@ const ApiController = {
             console.log(err);
             return;
         }
+
+        let url = `https://docs.google.com/spreadsheets/d/${sheet_id}`;
+        res.json({ status: 'success', url });
 
         // Write to Sheet
         let chunks = await Model.chunks(query);
@@ -736,9 +740,6 @@ const ApiController = {
 
         // End Write
         await sheet.endWrite();
-        let url = `https://docs.google.com/spreadsheets/d/${sheet_id}`;
-
-        res.json({ status: 'success', count, url });
     },
 
     async export_aggregation(req, res) {
