@@ -695,13 +695,26 @@ const ApiController = {
             return res.json({ status: 'error', message: 'auth error' });
         }
 
+        if(!fields || !fields.length) {
+            return res.json({ status: 'error', message: 'no fields selected' });
+        }
+
+        console.log('export', coll, fields);
+
         // Get Collection
         const date_time = moment().format('YYYY-MM-DD-HHmm');
 
         // Get Sheet
-        const sheet = Google.getSheet();
-        const sheet_id = await sheet.create(`${coll} export ${date_time}`);
-        await sheet.write(fields);
+        try {
+            const sheet = Google.getSheet();
+            const sheet_id = await sheet.create(`${coll} export ${date_time}`);
+            await sheet.write(fields);
+        }
+        catch(err) {
+            res.json({ status: 'error', message: 'writing to sheet failed. check your profile for token validity' });
+            console.log(err);
+            return;
+        }
 
         // Write to Sheet
         let chunks = await Model.chunks(query);

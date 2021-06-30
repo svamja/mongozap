@@ -130,16 +130,13 @@
 
   <div v-if="!isCollEmpty">
 
-    <span v-if="export_status == 'pending'">
+    <span v-if="!export_started">
       <a href="#" @click.prevent.stop="export_sheet">Export (Google Sheet)</a>
     </span>
-    <span v-else-if="export_status == 'started'">
-      Exporting.. (do not reload page)
+    <span v-if="export_message" :class="export_class">
+      {{ export_message }}
     </span>
-    <span v-else-if="export_status == 'error'" class="text-danger">
-      Export Error
-    </span>
-    <span v-else-if="export_status == 'ready'">
+    <span v-if="sheet_url">
       <a :href="sheet_url" target="_blank">
         Sheet URL <span class="fa fa-external-link-alt"></span>
       </a>
@@ -496,9 +493,13 @@ export default {
       pageOptions: [ 5, 10, 20, 50, 100, 500, 1000, 2000 ],
       is_allowed_edit: false,
       is_allowed_delete: false,
-      sheet_url: '',
       favorites: [],
-      export_status: 'pending',
+
+      // Export
+      export_started: false,
+      export_message: '',
+      export_class: '',
+      sheet_url: '',
     }
   },
 
@@ -702,7 +703,6 @@ export default {
 
     async updateRecord(event) {
 
-      this.export_status = 'pending';
       this.editError = false;
 
       // Get Item - Check for Errors
@@ -766,7 +766,6 @@ export default {
     },
 
     async deleteRecord() {
-      this.export_status = 'pending';
       let query = { _id: { "$oid" : this.deleteItem._id } };
       await MongoService.post(this, 'delete_records', { query });
       this.reload();
@@ -777,7 +776,6 @@ export default {
     },
 
     async insertDoc() {
-      this.export_status = 'pending';
       let doc;
       this.insertError = false;
       try {
@@ -818,7 +816,6 @@ export default {
     },
     
     applySearch() {
-      this.export_status = 'pending';
       let query;
       this.searchError = false;
       if(this.query_text && this.query_text.trim()) {
@@ -927,19 +924,30 @@ export default {
     },
 
     async export_sheet() {
-      this.export_status = 'started';
+      this.export_started = true;
+      this.export_message = 'Exporting ..';
+      this.export_class = 'text-primary';
       const query = this.query;
       let fields = _.map(this.fields, 'key');
       if(fields[0] == 'toggler') {
         fields.shift();
       }
+
+      if(!fields.length) {
+        this.export_message = 'Missing Fields. Please go to fields and reset.';
+        this.export_class = 'text-danger';
+        return;
+      }
+
       let result = await MongoService.post(this, 'export_sheet', { fields, query });
       if(result.url) {
         this.sheet_url = result.url;
-        this.export_status = 'ready';
+        this.export_message = 'Export Complete.';
+        this.export_class = 'text-success';
       }
       else {
-        this.export_status = 'error';
+        this.export_message = 'Export Error: ' + result.message;
+        this.export_class = 'text-danger';
       }
     },
 
