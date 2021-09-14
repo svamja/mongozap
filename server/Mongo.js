@@ -3,6 +3,8 @@ const _ = require('lodash');
 
 class Mongo {
 
+    static connections = {};
+
     constructor(coll_name, coll) {
         if(!coll) {
             throw new Error('constructor cannot be called directly. use get');
@@ -40,35 +42,38 @@ class Mongo {
         return new Mongo(coll_name, coll);
     }
 
-    static async get_collection(connectionUrl, dbName, coll_name) {
+    static async get_connection(connectionUrl) {
         connectionUrl = connectionUrl || 'mongodb://localhost/';
-        const options = { useUnifiedTopology: true, useNewUrlParser: true };
-        const client = await mongodb.MongoClient.connect(connectionUrl, options);
+        Mongo.connections = Mongo.connections || {};
+        if(!Mongo.connections[connectionUrl]) {
+          console.log('new connection', connectionUrl);
+          const options = { useUnifiedTopology: true, useNewUrlParser: true };
+          Mongo.connections[connectionUrl] = await mongodb.MongoClient.connect(connectionUrl, options);
+        }
+        return Mongo.connections[connectionUrl];
+    }
+
+    static async get_collection(connectionUrl, dbName, coll_name) {
+        const client = await Mongo.get_connection(connectionUrl);
         dbName = dbName || 'test';
         return client.db(dbName).collection(coll_name);
     }
 
     static async get_databases(connectionUrl) {
-        connectionUrl = connectionUrl || 'mongodb://localhost/';
-        const options = { useUnifiedTopology: true, useNewUrlParser: true };
-        const client = await mongodb.MongoClient.connect(connectionUrl, options);
+        const client = await Mongo.get_connection(connectionUrl);
         const adminDb = await client.db('admin').admin();
         const result = await adminDb.listDatabases();
         return result.databases;
     }
 
     static async get_database(connectionUrl, dbName) {
-        connectionUrl = connectionUrl || 'mongodb://localhost/';
-        const options = { useUnifiedTopology: true, useNewUrlParser: true };
-        const client = await mongodb.MongoClient.connect(connectionUrl, options);
+        const client = await Mongo.get_connection(connectionUrl);
         const db = await client.db(dbName);
         return db;
     }
 
     static async get_collections(connectionUrl, dbName) {
-        connectionUrl = connectionUrl || 'mongodb://localhost/';
-        const options = { useUnifiedTopology: true, useNewUrlParser: true };
-        const client = await mongodb.MongoClient.connect(connectionUrl, options);
+        const client = await Mongo.get_connection(connectionUrl);
         const db = await client.db(dbName);
         const result = await db.collections();
         let collections = [];
@@ -81,9 +86,7 @@ class Mongo {
     }
 
     static async get_coll_stats(connectionUrl, dbName) {
-        connectionUrl = connectionUrl || 'mongodb://localhost/';
-        const options = { useUnifiedTopology: true, useNewUrlParser: true };
-        const client = await mongodb.MongoClient.connect(connectionUrl, options);
+        const client = await Mongo.get_connection(connectionUrl);
         const db = await client.db(dbName);
         const result = await db.collections();
         let collections = [];
