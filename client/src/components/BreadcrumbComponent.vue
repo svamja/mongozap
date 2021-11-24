@@ -49,6 +49,9 @@
     <b-dropdown-item href="#" v-b-modal.copy-collection-modal>
       Copy..
     </b-dropdown-item>
+    <b-dropdown-item href="#" v-b-modal.rename-collection-modal>
+      Rename..
+    </b-dropdown-item>
     <!-- <b-dropdown-item href="#" :to="`/export/${connection}/${database}/${collection}/query`">
       Export
     </b-dropdown-item> -->

@@ -379,6 +379,16 @@
     </div>
   </b-modal>
 
+  <!-- Rename Collection Modal -->
+  <b-modal id="rename-collection-modal" title="Rename Collection"
+    ok-title="Rename Collection"
+    @ok="renameCollection()">
+    <div>
+      <div> New Name </div>
+      <b-input v-model="rename_collection_name"></b-input>
+    </div>
+  </b-modal>
+
   <!-- Clear Confirmation Modal -->
   <b-modal id="clear-confirmation-modal" title="Confirmation"
     ok-variant="danger" ok-title="Clear Collection"
@@ -485,6 +495,7 @@ export default {
       updateError: '',
       editError: false,
       copy_collection_name: '',
+      rename_collection_name: '',
       records: [],
       fields: null,
       perPage: 100,
@@ -742,6 +753,16 @@ export default {
       if(this.copy_collection_name) {
         let new_collection = this.copy_collection_name;
         await MongoService.post(this, 'copy_collection', { new_collection });
+        this.$router.push(`/coll/${this.connection}/${this.database}/${new_collection}/index`);
+        ConfigService.remove('colls:' + this.connection + ':' + this.database);
+        window.location.reload();
+      }
+    },
+
+    async renameCollection() {
+      if(this.rename_collection_name) {
+        let new_collection = this.rename_collection_name;
+        await MongoService.post(this, 'rename_collection', { new_collection });
         this.$router.push(`/coll/${this.connection}/${this.database}/${new_collection}/index`);
         ConfigService.remove('colls:' + this.connection + ':' + this.database);
         window.location.reload();
