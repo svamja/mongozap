@@ -41,6 +41,9 @@ It uses .env file and environment variables for configuration. Below variables a
 | BASE_URL              | Server on which mongozap is running. Used for Google authentication. Override it to 'http://localhost:8080' when running in development. Change it to suitable hostname when using nginx proxy. | 'http://localhost:3333' |
 
 
+## NGINX and systemd service
+
+See [assets](assets) folder for sample NGINX configuration file and systemd service file.
 
 ## Screenshots
 

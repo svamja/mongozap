@@ -1,0 +1,14 @@
+[Unit]
+Description=mongozap service
+
+[Service]
+User=admin
+Group=admin
+Restart=always
+WorkingDirectory=/var/www/mongozap
+ExecStart=/usr/bin/node /var/www/mongozap/server/index.js
+StandardOutput=append:/var/www/mongozap/logs/server.log
+StandardError=inherit
+
+[Install]
+WantedBy=multi-user.target
