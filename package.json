@@ -17,7 +17,7 @@
     "express": "^4.17.1",
     "google-api-wrapper": "^1.7.0",
     "googleapis": "^67.0.0",
-    "jsonwebtoken": "^8.5.1",
+    "jsonwebtoken": "^9.0.0",
     "lodash": "^4.17.20",
     "mongodb": "^3.6.3",
     "mongodb-schema": "^8.2.5",
